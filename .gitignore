@@ -1,0 +1,9 @@
+Virtual Environment
+venv/
+pycache/
+
+Database file
+jobs.db
+
+VSCode specific
+.vscode/
