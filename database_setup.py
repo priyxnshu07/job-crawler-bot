@@ -3,15 +3,13 @@ import psycopg2
 from config import DATABASE_CONFIG
 
 def setup_database():
-    """Connects to PostgreSQL and creates the jobs table."""
+    """Connects to PostgreSQL and creates/updates tables."""
     conn = None
     try:
-        # Establish connection
         conn = psycopg2.connect(**DATABASE_CONFIG)
         cursor = conn.cursor()
 
-        # Create the jobs table with PostgreSQL-specific syntax
-        # SERIAL is an auto-incrementing integer in PostgreSQL
+        # --- jobs table ---
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS jobs (
             jobId SERIAL PRIMARY KEY,
@@ -22,10 +20,58 @@ def setup_database():
             apply_link TEXT UNIQUE NOT NULL
         );
         ''')
+        print("Table 'jobs' is ready.")
+
+        # --- users table ---
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        );
+        ''')
+        print("Table 'users' is ready.")
+        
+        # --- NEW: Add 'skills' column to users table ---
+        # We use 'ADD COLUMN IF NOT EXISTS' so this is safe to run
+        # even if the column already exists.
+        # TEXT[] is a PostgreSQL-specific type for an array of strings.
+        try:
+            cursor.execute('''
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS skills TEXT[];
+            ''')
+            print("Column 'skills' in 'users' table is ready.")
+        except psycopg2.Error as e:
+            print(f"Error adding 'skills' column: {e}")
+            conn.rollback() # Rollback the transaction on error
+        
+        # --- NEW: Add 'email_alerts_enabled' column to users table ---
+        try:
+            cursor.execute('''
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS email_alerts_enabled BOOLEAN DEFAULT FALSE;
+            ''')
+            print("Column 'email_alerts_enabled' in 'users' table is ready.")
+        except psycopg2.Error as e:
+            print(f"Error adding 'email_alerts_enabled' column: {e}")
+            conn.rollback()
+        
+        # --- NEW: Add 'last_email_check' column to users table ---
+        try:
+            cursor.execute('''
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS last_email_check TIMESTAMP;
+            ''')
+            print("Column 'last_email_check' in 'users' table is ready.")
+        except psycopg2.Error as e:
+            print(f"Error adding 'last_email_check' column: {e}")
+            conn.rollback()
+
 
         conn.commit()
         cursor.close()
-        print("Database and table created successfully in PostgreSQL.")
+        print("Database and tables created/updated successfully in PostgreSQL.")
 
     except psycopg2.OperationalError as e:
         print(f"Could not connect to the database: {e}")
@@ -36,6 +82,6 @@ def setup_database():
         if conn is not None:
             conn.close()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     setup_database()
 
