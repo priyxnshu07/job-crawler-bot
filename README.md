@@ -1,68 +1,148 @@
-Job Crawler Bot 🤖
-This project is a job aggregator and search engine that scrapes job listings from various portals and centralizes them into a single, searchable dashboard. The goal is to provide users with a streamlined way to find job openings that match their skills and preferences.
+# Job Crawler Bot 🤖
 
-✨ Key Features
-Based on the project plan, the key features are:
+Automated job search system with personalized matching and email alerts.
 
-Multi-Site Scraping: Collects job data from multiple online portals.
+## Features
 
-Centralized Database: Stores all job listings in a local SQLite database.
+✅ **Resume Upload** - Upload your CV and extract skills automatically  
+✅ **Personalized Matching** - Find jobs that match your skills  
+✅ **Email Alerts** - Get notified when new matching jobs are found  
+✅ **Real-Time Scraping** - Jobs are updated every 30 seconds  
+✅ **Match Scores** - See how well jobs match your profile  
 
-Personalized Filtering: (Future Goal) Allows users to upload a resume to get personalized job matches.
+## Quick Start
 
-Advanced Search: Users can search for jobs by title, company, or location.
+### 1. Setup (First Time Only)
 
-Direct Apply Links: Provides direct links to the original job postings.
+```bash
+# Make scripts executable
+chmod +x setup.sh start_app.sh stop_app.sh
 
-🛠️ Technology Stack
-Backend: Python, Flask
+# Run setup
+./setup.sh
+```
 
-Scraping: Requests, BeautifulSoup
+### 2. Configure Email Alerts (Optional but Recommended)
 
-Database: SQLite
+Create a `.env` file in the project root:
 
-Frontend: HTML, CSS, JavaScript
+```bash
+# .env
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+```
 
-🚀 Getting Started
-Follow these instructions to get a local copy up and running.
+**To get a Gmail App Password:**
+1. Go to: https://myaccount.google.com/apppasswords
+2. Select "Mail" and "Other (Custom name)"
+3. Enter "Job Crawler Bot"
+4. Click "Generate"
+5. Copy the 16-digit password and paste it in `.env`
 
-Prerequisites
-Python 3.x
+### 3. Start the Application
 
-Pip
+```bash
+./start_app.sh
+```
 
-Installation & Setup
-Clone the repository:
+Your app will be available at: **http://127.0.0.1:5001**
 
-git clone <your-repository-url>
+### 4. Stop the Application
 
-Navigate to the project directory:
+```bash
+./stop_app.sh
+```
 
-cd jobcrawlerprototype-copy
+## Manual Setup (Alternative)
 
-Create and activate a virtual environment:
+If you prefer to run commands manually:
 
-# Create
-python -m venv venv
-# Activate (macOS/Linux)
+### Terminal 1: Flask App
+```bash
 source venv/bin/activate
-# Activate (Windows)
-.\venv\Scripts\activate
+export EMAIL_USER="your-email@gmail.com"
+export EMAIL_PASSWORD="your-app-password"
+python app.py
+```
 
-Install the required packages:
+### Terminal 2: Celery Worker
+```bash
+source venv/bin/activate
+export EMAIL_USER="your-email@gmail.com"
+export EMAIL_PASSWORD="your-app-password"
+python -m celery -A tasks worker --loglevel INFO
+```
 
-pip install -r requirements.txt
+### Terminal 3: Celery Scheduler
+```bash
+source venv/bin/activate
+export EMAIL_USER="your-email@gmail.com"
+export EMAIL_PASSWORD="your-app-password"
+python -m celery -A tasks beat --loglevel INFO
+```
 
-Set up the database:
+### Terminal 4: Redis (if not installed)
+```bash
+redis-server
+```
 
-python database_setup.py
+## Usage
 
-Run the scraper to populate the database:
+1. **Register/Login** - Create an account or login
+2. **Upload Resume** - Upload your CV to extract your skills
+3. **Enable Email Alerts** - Toggle email alerts in your profile
+4. **Browse Jobs** - Search for jobs or click "Show Personalized Matches"
+5. **Apply** - Click "Apply Now" to visit the job posting on Indeed.com
 
-python scraper.py
+## Project Structure
 
-Run the Flask application:
+```
+jobcrawlerprototype/
+├── app.py              # Flask application
+├── tasks.py            # Celery tasks (scraping & alerts)
+├── config.py           # Configuration
+├── database_setup.py  # Database setup
+├── requirements.txt    # Python dependencies
+├── templates/          # HTML templates
+├── uploads/            # Resume uploads
+└── *.sh                # Startup scripts
+```
 
-flask run
+## Technologies
 
-Open your browser and navigate to http://127.0.0.1:5000.
+- **Flask** - Web framework
+- **PostgreSQL** - Database
+- **Redis** - Task queue
+- **Celery** - Background jobs
+- **Flask-Mail** - Email sending
+- **spaCy** - NLP for skill extraction
+- **PyPDF2** - PDF parsing
+- **python-docx** - DOCX parsing
+
+## System Requirements
+
+- Python 3.9+
+- PostgreSQL 12+
+- Redis 6+
+- 2GB RAM minimum
+
+## Troubleshooting
+
+### Port 5001 already in use
+```bash
+# Kill the process using port 5001
+lsof -ti:5001 | xargs kill
+```
+
+### Email not working
+- Verify your Gmail App Password is correct
+- Check that environment variables are set
+- See logs: `tail -f celery-worker.log`
+
+### Database connection error
+- Ensure PostgreSQL is running: `pgrep -l postgres`
+- Check database credentials in `config.py`
+
+## License
+
+MIT License

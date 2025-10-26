@@ -107,7 +107,7 @@ def check_and_send_job_alerts():
             matching_jobs = []
             for job in jobs:
                 match_score, matched_skills = calculate_job_match_score(dict(job), user_skills)
-                if match_score >= 25:  # Only send jobs with 25%+ match
+                if match_score >= 1:  # Lowered threshold to 1% for testing
                     job_dict = dict(job)
                     job_dict['match_score'] = match_score
                     job_dict['matched_skills'] = matched_skills
@@ -116,9 +116,10 @@ def check_and_send_job_alerts():
             # Send email if there are matches (note: indentation fixed)
             if matching_jobs:
                 try:
-                    # Import email sending function from app
-                    from app import send_job_alert_email
-                    send_job_alert_email(user['email'], user_skills, matching_jobs)
+                    # Import email sending function from app with app context
+                    from app import app, send_job_alert_email
+                    with app.app_context():
+                        send_job_alert_email(user['email'], user_skills, matching_jobs)
                     print(f"✅ Sent email to {user['email']} with {len(matching_jobs)} matching jobs")
                     print(f"   Jobs: {[j['title'] for j in matching_jobs[:3]]}")
                     sent_count += 1
