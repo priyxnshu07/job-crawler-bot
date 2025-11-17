@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auth - Job Crawler</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='auth/style.css') }}" />
+</head>
+<body class="{% if mode == 'register' %}signup-mode{% else %}login-mode{% endif %}">
+  <div class="auth-wrapper">
+    <!-- BLUE PANEL / TEXT SIDE -->
+    <div class="info-panel">
+      {% if mode == 'register' %}
+        <h2>One of us?</h2>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Optio minus natus est.</p>
+        <button class="outline-btn" id="go-signin">SIGN IN</button>
+      {% else %}
+        <h2>New here?</h2>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Optio minus natus est.</p>
+        <button class="outline-btn" id="go-signup">SIGN UP</button>
+      {% endif %}
+    </div>
+
+    <!-- FORM SIDE -->
+    <div class="form-panel">
+      <!-- FLASH MESSAGES -->
+      {% with messages = get_flashed_messages(category_filter=['error']) %}
+        {% if messages %}
+          <div class="alert">{{ messages[0] }}</div>
+        {% endif %}
+      {% endwith %}
+
+      {% if mode == 'register' %}
+        <h2 class="form-title">Sign Up</h2>
+        <form action="{{ url_for('register') }}" method="POST" class="auth-form">
+          {{ register_form.hidden_tag() }}
+          <div class="field">
+            {{ register_form.email(placeholder='Email') }}
+          </div>
+          <div class="field">
+            {{ register_form.password(placeholder='Password') }}
+          </div>
+          <button type="submit" class="primary-btn">SIGN UP</button>
+        </form>
+      {% else %}
+        <h2 class="form-title">Sign In</h2>
+        <form action="{{ url_for('login') }}" method="POST" class="auth-form">
+          {{ login_form.hidden_tag() }}
+          <div class="field">
+            {{ login_form.email(placeholder='Username') }}
+          </div>
+          <div class="field">
+            {{ login_form.password(placeholder='Password') }}
+          </div>
+          <button type="submit" class="primary-btn">LOGIN</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    // Simple client-side navigation between modes
+    const goSignup = document.getElementById('go-signup');
+    const goSignin = document.getElementById('go-signin');
+    if (goSignup) {
+      goSignup.addEventListener('click', () => {
+        window.location.href = "{{ url_for('register') }}";
+      });
+    }
+    if (goSignin) {
+      goSignin.addEventListener('click', () => {
+        window.location.href = "{{ url_for('login') }}";
+      });
+    }
+  </script>
+</body>
+</html>

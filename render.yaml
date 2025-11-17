@@ -1,0 +1,55 @@
+services:
+  - type: web
+    name: job-crawler-web
+    env: python
+    buildCommand: pip install -r requirements.txt && python -m spacy download en_core_web_sm
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        value: dfc072b7405b57e60b7fca3f2f3b28200ef043ae9395a2ab03312cdf557625b0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: job-crawler-db
+          property: connectionString
+    healthCheckPath: /login
+    plan: free
+
+  - type: worker
+    name: job-crawler-worker
+    env: python
+    buildCommand: pip install -r requirements.txt && python -m spacy download en_core_web_sm
+    startCommand: celery -A tasks worker --loglevel=info --concurrency=2
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        value: dfc072b7405b57e60b7fca3f2f3b28200ef043ae9395a2ab03312cdf557625b0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: job-crawler-db
+          property: connectionString
+    plan: free
+
+  - type: worker
+    name: job-crawler-beat
+    env: python
+    buildCommand: pip install -r requirements.txt && python -m spacy download en_core_web_sm
+    startCommand: celery -A tasks beat --loglevel=info
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        value: dfc072b7405b57e60b7fca3f2f3b28200ef043ae9395a2ab03312cdf557625b0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: job-crawler-db
+          property: connectionString
+    plan: free
+
+databases:
+  - name: job-crawler-db
+    databaseName: job_crawler_db
+    user: job_crawler_user
+    plan: free

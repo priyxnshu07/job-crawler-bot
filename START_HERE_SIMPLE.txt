@@ -1,0 +1,79 @@
+================================================================================
+                    SUPER SIMPLE INSTRUCTIONS - READ THIS!
+================================================================================
+
+You're on Mac, so follow these steps:
+
+STEP 1: SETUP (Do this ONCE)
+------------------------------
+1. Find the file named: SETUP.command
+2. Right-click on it
+3. Click "Open"
+4. If it says "Cannot be opened", click "Open" anyway
+5. Wait for it to finish
+6. Done!
+
+
+STEP 2: RUN THE APP (Every time you want to use it)
+-----------------------------------------------------
+1. Find the file named: RUN.command
+2. Right-click on it
+3. Click "Open"
+4. If it says "Cannot be opened", click "Open" anyway
+5. Wait 10-15 seconds
+6. Your browser will open automatically
+7. Done!
+
+
+STEP 3: STOP THE APP
+---------------------
+1. Click on the terminal window that opened
+2. Press Ctrl+C (hold Control, press C)
+3. Done!
+
+
+================================================================================
+IF FILES DON'T OPEN:
+================================================================================
+
+Option 1: Use Terminal
+1. Open Terminal (press Command+Space, type "Terminal")
+2. Type: cd
+3. Press space
+4. Drag your project folder into Terminal
+5. Press Enter
+6. Type: ./SETUP.command (for setup) or ./RUN.command (to run)
+7. Press Enter
+
+
+Option 2: Make files executable
+1. Open Terminal
+2. Type: cd
+3. Press space
+4. Drag your project folder into Terminal
+5. Press Enter
+6. Type: chmod +x *.command
+7. Press Enter
+8. Now double-click the files
+
+
+================================================================================
+WHAT TO DO RIGHT NOW:
+================================================================================
+
+1. Open Terminal (Command+Space, type "Terminal")
+2. Type this exactly:
+   cd "/Users/priyanshuparashar/Documents/daily work/jobcrawlerprototype"
+3. Press Enter
+4. Type: chmod +x SETUP.command RUN.command
+5. Press Enter
+6. Type: ./SETUP.command
+7. Press Enter
+8. Wait for setup to finish
+9. Type: ./RUN.command
+10. Press Enter
+11. Wait 10 seconds
+12. Browser opens automatically!
+
+================================================================================
+

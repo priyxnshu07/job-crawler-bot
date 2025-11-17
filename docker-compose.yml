@@ -1,0 +1,59 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: job_crawler_db
+      POSTGRES_USER: priyanshuparashar
+      POSTGRES_PASSWORD: ""
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    command: python app.py
+    env_file:
+      - ./.env
+    environment:
+      - DATABASE_URL=postgresql://priyanshuparashar@postgres:5432/job_crawler_db
+      - REDIS_URL=redis://redis:6379/0
+      - PORT=5001
+    ports:
+      - "5001:5001"
+    depends_on:
+      - postgres
+      - redis
+
+  worker:
+    build: .
+    command: python -m celery -A tasks worker --loglevel INFO
+    env_file:
+      - ./.env
+    environment:
+      - DATABASE_URL=postgresql://priyanshuparashar@postgres:5432/job_crawler_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+
+  beat:
+    build: .
+    command: python -m celery -A tasks beat --loglevel INFO
+    env_file:
+      - ./.env
+    environment:
+      - DATABASE_URL=postgresql://priyanshuparashar@postgres:5432/job_crawler_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  pgdata:

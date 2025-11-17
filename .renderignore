@@ -1,0 +1,22 @@
+# Render ignore file
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.local
+*.log
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+.DS_Store
+.vscode/
+.idea/
+uploads/*.pdf
+uploads/*.doc
+uploads/*.docx
+test_*.py
+tests/
+

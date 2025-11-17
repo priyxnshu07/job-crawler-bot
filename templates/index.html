@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Job Crawler Bot — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --muted:#94a3b8;
+      --accent:#6ee7b7;
+      --brand:#60a5fa;
+      --glass: rgba(255,255,255,0.04);
+      --success:#10b981;
+      --danger:#ef4444;
+      --radius:14px;
+      --glass-2: rgba(255,255,255,0.03);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,-apple-system,Arial; background: linear-gradient(180deg,#071026 0%, #071428 100%); color:#e6eef8}
+
+    .wrap{max-width:1100px;margin:32px auto;padding:28px;border-radius:20px;background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));backdrop-filter: blur(6px);box-shadow: 0 10px 30px rgba(2,6,23,0.6)}
+
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,var(--brand),#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;box-shadow: 0 6px 20px rgba(96,165,250,0.12)}
+    h1{margin:0;font-size:20px;font-weight:700}
+    .sub{color:var(--muted);font-size:13px}
+
+    .header-actions{display:flex;align-items:center;gap:12px}
+    .user-chip{display:flex;align-items:center;gap:10px;background:var(--glass);padding:8px 12px;border-radius:999px}
+    .user-chip img{width:32px;height:32px;border-radius:50%;object-fit:cover}
+    .logout{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--accent);padding:8px 12px;border-radius:10px;text-decoration:none}
+
+    main{display:grid;grid-template-columns:320px 1fr;gap:22px;margin-top:20px}
+
+    .panel{background:linear-gradient(180deg,var(--card), rgba(255,255,255,0.01));padding:18px;border-radius:var(--radius);border:1px solid rgba(255,255,255,0.03)}
+    .profile-h{display:flex;gap:12px;align-items:center}
+    .avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#34d399,#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:700}
+    .profile-meta{line-height:1}
+    .profile-meta h3{margin:0;font-size:15px}
+    .profile-meta p{margin:0;color:var(--muted);font-size:13px}
+
+    .skills-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .skill{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:7px 10px;border-radius:999px;font-weight:600;color:var(--brand);font-size:13px;border:1px solid rgba(96,165,250,0.08)}
+
+    .upload-area{margin-top:16px;padding:12px;border-radius:12px;background:var(--glass-2);border:1px dashed rgba(255,255,255,0.04);text-align:center}
+    .upload-area.drag{border-color:rgba(96,165,250,0.35)}
+    .upload-actions{display:flex;gap:8px;justify-content:center;margin-top:10px}
+    .btn{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
+    .btn.primary{background:linear-gradient(90deg,var(--brand),#7c3aed);color:white}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+
+    .small{font-size:13px;color:var(--muted)}
+
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;margin-top:16px}
+    .pill{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.02);font-weight:600}
+
+    .toolbar{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+    .search{flex:1;display:flex;background:var(--glass);padding:8px;border-radius:10px;align-items:center;gap:8px}
+    .search input{flex:1;background:transparent;border:0;outline:none;color:inherit;padding:8px;font-size:15px}
+    .search button{border-radius:8px;padding:8px 12px;border:0;background:transparent;color:var(--accent);cursor:pointer}
+
+    .filters{display:flex;gap:10px;align-items:center}
+    .filter-select{padding:8px;border-radius:10px;background:var(--glass);border:1px solid rgba(255,255,255,0.02);color:var(--muted)}
+
+    .jobs-list{display:grid;gap:12px}
+    .job-card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .job-info{flex:1}
+    .job-info h3{margin:0;font-size:16px}
+    .job-info p{margin:4px 0;color:var(--muted);font-size:13px}
+
+    .match{min-width:92px;text-align:center;padding:8px;border-radius:999px;background:linear-gradient(90deg, rgba(16,185,129,0.14), rgba(96,165,250,0.06));font-weight:700}
+    .match.low{background:linear-gradient(90deg, rgba(239,68,68,0.06), rgba(255,255,255,0.01));color:#ffb4b4}
+    .match.med{background:linear-gradient(90deg, rgba(253,224,71,0.06), rgba(255,255,255,0.01));color:#ffe8a1}
+
+    .apply{background:linear-gradient(90deg,#34d399,#60a5fa);padding:10px 14px;border-radius:10px;color:#07223a;text-decoration:none;font-weight:700}
+
+    .matched-skills{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+    .skill-chip{padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.02);color:var(--muted);font-size:12px;border:1px solid rgba(255,255,255,0.02)}
+
+    footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+
+    @media (max-width:900px){main{grid-template-columns:1fr;}
+      .logo{display:none}
+      .user-chip span{display:none}
+    }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">JC</div>
+        <div>
+          <h1>Job Crawler Bot</h1>
+          <div class="sub">Personalized matches & smart alerts</div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="user-chip">
+          <img src="https://api.dicebear.com/6.x/identicon/svg?seed={{ current_user.email }}" alt="avatar">
+          <div style="line-height:1">
+            <div style="font-weight:700;font-size:14px">{{ current_user.email }}</div>
+            <div class="small">Member</div>
+          </div>
+        </div>
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </header>
+
+    <main>
+      <aside class="panel">
+        <div class="profile-h">
+          <div class="avatar">{{ current_user.email[0]|upper }}</div>
+          <div class="profile-meta">
+            <h3>Welcome back</h3>
+            <p class="small">Manage your resume, preferences and alerts</p>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <div style="font-weight:700;margin-bottom:8px">Extracted skills</div>
+          {% if skills %}
+            <div class="skills-list">
+              {% for skill in skills %}
+                <div class="skill">{{ skill }}</div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="small">No skills found yet. Upload your resume to extract skills automatically.</div>
+          {% endif %}
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+          <div style="font-weight:700">Upload Resume</div>
+          <div class="small">PDF / DOC / DOCX — drag & drop or choose file</div>
+          <form id="uploadForm" action="/upload_resume" method="POST" enctype="multipart/form-data" style="margin-top:10px;">
+            <input id="fileInput" name="resume" accept=".pdf,.doc,.docx" type="file" style="display:none" required>
+            <div class="upload-actions">
+              <button type="button" class="btn ghost" id="chooseBtn">Choose File</button>
+              <button type="submit" class="btn primary">Upload</button>
+            </div>
+          </form>
+        </div>
+
+        <div style="margin-top:14px" class="toggle-row">
+          <div>
+            <div style="font-weight:700">Preferred location</div>
+            <div class="small">Filter jobs by city, country or "Remote"</div>
+          </div>
+          <div>
+            <form action="/update-location" method="POST" style="display:flex;gap:8px;align-items:center">
+              <input name="preferred_location" id="locationInput" placeholder="e.g., India, Remote, Bangalore" value="{{ preferred_location or '' }}" style="padding:8px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:inherit">
+              <button class="btn ghost" type="submit">Save</button>
+            </form>
+          </div>
+        </div>
+
+        <div style="margin-top:14px" class="toggle-row">
+          <div>
+            <div style="font-weight:700">Email Alerts</div>
+            <div class="small">Get notified when matching jobs arrive</div>
+          </div>
+          <div>
+            <button id="toggleEmailAlerts" class="btn primary">{{ 'Disable' if current_user.email_alerts_enabled else 'Enable' }} Alerts</button>
+          </div>
+        </div>
+
+      </aside>
+
+      <section>
+        <div class="panel">
+          <div class="toolbar">
+            <div class="search">
+              <input id="searchInput" placeholder="Search by title, company, or location...">
+              <button id="searchButton">🔎</button>
+            </div>
+
+            <select id="locationFilter" class="filter-select">
+              <option value="">Any location</option>
+              <option value="Remote">Remote</option>
+              <option value="Bangalore">Bangalore</option>
+              <option value="India">India</option>
+              <option value="Chandigarh">Chandigarh</option>
+            </select>
+
+            <button id="personalizedButton" class="btn primary">Show Personalized</button>
+          </div>
+
+          <div id="jobListings" class="jobs-list">
+            <div style="text-align:center;padding:36px;color:var(--muted)">Loading jobs…</div>
+          </div>
+        </div>
+
+        <footer>
+          <div class="small">Job Crawler Bot • Smart matching powered by your resume</div>
+        </footer>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    const personalizedButton = document.getElementById('personalizedButton');
+    const jobListingsDiv = document.getElementById('jobListings');
+    const toggleEmailAlertsBtn = document.getElementById('toggleEmailAlerts');
+    const chooseBtn = document.getElementById('chooseBtn');
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const uploadForm = document.getElementById('uploadForm');
+    const locationFilter = document.getElementById('locationFilter');
+
+    let isPersonalized = false;
+    let currentLocation = '';
+
+    async function fetchAndDisplayJobs(query = '', personalized = false){
+      jobListingsDiv.innerHTML = `<div style="text-align:center;padding:36px;color:var(--muted)">Searching…</div>`;
+      try{
+        const params = new URLSearchParams();
+        if (personalized){
+          params.set('personalized', 'true');
+        } else if (query){
+          params.set('q', query);
+        }
+        if (currentLocation){
+          params.set('location', currentLocation);
+        }
+        const url = `/search?${params.toString()}`;
+        const response = await fetch(url);
+        if (response.redirected){ window.location.href = response.url; return; }
+        const jobs = await response.json();
+        jobListingsDiv.innerHTML = '';
+
+        if (!jobs || jobs.length === 0){
+          jobListingsDiv.innerHTML = `<div style="text-align:center;padding:36px;color:var(--muted)">No jobs found.</div>`;
+          return;
+        }
+
+        jobs.forEach(job => {
+          const card = document.createElement('div');
+          card.className = 'job-card';
+
+          const info = document.createElement('div');
+          info.className = 'job-info';
+          const title = document.createElement('h3'); title.textContent = job.title;
+          const meta1 = document.createElement('p'); meta1.innerHTML = `<strong>${job.company}</strong> • ${job.location}`;
+
+          info.appendChild(title); info.appendChild(meta1);
+
+          if (job.matched_skills && job.matched_skills.length){
+            const ms = document.createElement('div'); ms.className = 'matched-skills';
+            job.matched_skills.slice(0,6).forEach(s => {
+              const chip = document.createElement('div'); chip.className = 'skill-chip'; chip.textContent = s;
+              ms.appendChild(chip);
+            });
+            info.appendChild(ms);
+          }
+
+          const right = document.createElement('div'); right.style.display='flex'; right.style.flexDirection='column'; right.style.alignItems='flex-end'; right.style.gap='10px';
+          const match = document.createElement('div');
+          const score = job.match_score !== undefined ? job.match_score : 0;
+          if (score >= 50) match.className = 'match';
+          else if (score >= 25) match.className = 'match med';
+          else match.className = 'match low';
+          match.textContent = `${score}%`;
+
+          const apply = document.createElement('a'); apply.className = 'apply'; apply.href = job.apply_link; apply.target = '_blank'; apply.textContent = 'Apply';
+
+          right.appendChild(match); right.appendChild(apply);
+
+          card.appendChild(info); card.appendChild(right);
+          jobListingsDiv.appendChild(card);
+        });
+
+      }catch(err){
+        console.error(err);
+        jobListingsDiv.innerHTML = `<div style="text-align:center;padding:36px;color:var(--danger)">Error loading jobs.</div>`;
+      }
+    }
+
+    searchButton.addEventListener('click', ()=>{ isPersonalized=false; fetchAndDisplayJobs(searchInput.value, false); });
+    personalizedButton.addEventListener('click', ()=>{ isPersonalized=true; fetchAndDisplayJobs('', true); });
+    searchInput.addEventListener('keypress', (e)=>{ if (e.key === 'Enter'){ isPersonalized=false; fetchAndDisplayJobs(searchInput.value, false); } });
+
+    chooseBtn.addEventListener('click', ()=> fileInput.click());
+    uploadArea.addEventListener('dragover', (e)=>{ e.preventDefault(); uploadArea.classList.add('drag'); });
+    uploadArea.addEventListener('dragleave', ()=> uploadArea.classList.remove('drag'));
+    uploadArea.addEventListener('drop', (e)=>{
+      e.preventDefault(); uploadArea.classList.remove('drag');
+      const f = e.dataTransfer.files[0];
+      if (f){
+        const dt = new DataTransfer(); dt.items.add(f); fileInput.files = dt.files;
+      }
+    });
+
+    toggleEmailAlertsBtn.addEventListener('click', async ()=>{
+      try{
+        const res = await fetch('/toggle-email-alerts', {method:'POST', headers:{'Content-Type':'application/json'}});
+        const data = await res.json();
+        if (data && data.enabled !== undefined){
+          toggleEmailAlertsBtn.textContent = data.enabled ? 'Disable Alerts' : 'Enable Alerts';
+        }
+      }catch(e){ console.error(e); }
+    });
+
+    locationFilter.addEventListener('change', ()=>{
+      currentLocation = locationFilter.value || '';
+      fetchAndDisplayJobs(searchInput.value, isPersonalized);
+    });
+
+    fetchAndDisplayJobs();
+  </script>
+</body>
+</html>
+

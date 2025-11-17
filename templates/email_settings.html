@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Settings - Job Crawler Bot</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f9; color: #333; margin: 0; }
+        .container { max-width: 600px; margin: auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #ddd; margin-bottom: 20px; }
+        .header h1 { margin: 0; }
+        .back-btn { text-decoration: none; background-color: #6c757d; color: white; padding: 8px 12px; border-radius: 5px; font-size: 0.9rem; }
+        .back-btn:hover { background-color: #5a6268; }
+        .form-section { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; box-sizing: border-box; }
+        .form-group small { display: block; margin-top: 5px; color: #666; font-size: 0.85rem; }
+        .btn-primary { background-color: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 1rem; width: 100%; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .flash { padding: 1rem; margin-bottom: 1rem; border-radius: 6px; }
+        .flash.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info-box { background-color: #e7f3ff; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        .info-box h3 { margin-top: 0; color: #0056b3; }
+        .info-box ol { margin: 10px 0; padding-left: 20px; }
+        .info-box li { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📧 Email Settings</h1>
+            <a href="/" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="info-box">
+            <h3>📝 How to Get Gmail App Password</h3>
+            <ol>
+                <li>Go to <a href="https://myaccount.google.com/apppasswords" target="_blank">Google App Passwords</a></li>
+                <li>Sign in if needed</li>
+                <li>Select "Mail" and "Other (Custom name)"</li>
+                <li>Enter "Job Crawler" as the name</li>
+                <li>Click "Generate"</li>
+                <li>Copy the 16-character password (looks like: abcd efgh ijkl mnop)</li>
+                <li>Paste it below (spaces don't matter)</li>
+            </ol>
+            <p><strong>Note:</strong> Your password is stored securely and encrypted. You only need to enter it once.</p>
+        </div>
+
+        <div class="form-section">
+            <h2>Configure Email</h2>
+            <form method="POST" action="/save-email-settings">
+                <div class="form-group">
+                    <label for="smtp_server">SMTP Server</label>
+                    <select id="smtp_server" name="smtp_server" required>
+                        <option value="smtp.gmail.com" {% if smtp_server == 'smtp.gmail.com' %}selected{% endif %}>Gmail (smtp.gmail.com)</option>
+                        <option value="smtp.outlook.com" {% if smtp_server == 'smtp.outlook.com' %}selected{% endif %}>Outlook (smtp.outlook.com)</option>
+                        <option value="smtp.yahoo.com" {% if smtp_server == 'smtp.yahoo.com' %}selected{% endif %}>Yahoo (smtp.yahoo.com)</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <small>Select your email provider or choose "Custom" to enter your own SMTP server</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="smtp_port">SMTP Port</label>
+                    <input type="number" id="smtp_port" name="smtp_port" value="{{ smtp_port }}" required>
+                    <small>Usually 587 for TLS (Gmail, Outlook) or 465 for SSL</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="email_username">Your Email Address</label>
+                    <input type="email" id="email_username" name="email_username" value="{{ email_username }}" placeholder="your-email@gmail.com" required>
+                    <small>This is the email address that will send job alerts</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="email_password">
+                        App Password 
+                        {% if has_config %}<span style="color: #666; font-weight: normal;">(leave blank to keep current)</span>{% endif %}
+                    </label>
+                    <input type="password" id="email_password" name="email_password" placeholder="Enter your 16-character app password" {% if not has_config %}required{% endif %}>
+                    <small>Your Gmail/Outlook app password (NOT your regular password)</small>
+                </div>
+
+                <button type="submit" class="btn-primary">💾 Save Email Settings</button>
+            </form>
+        </div>
+
+        {% if has_config %}
+        <div class="form-section" style="background-color: #d4edda; border-left: 4px solid #28a745;">
+            <h3 style="color: #155724; margin-top: 0;">✅ Email Configured</h3>
+            <p style="color: #155724; margin: 0;">Your email is set up! You can now enable email alerts from the dashboard.</p>
+            <p style="margin-top: 10px;">
+                <a href="/test-email" style="color: #007bff; text-decoration: none;">→ Send Test Email</a>
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
+

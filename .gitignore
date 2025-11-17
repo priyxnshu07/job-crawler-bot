@@ -1,0 +1,48 @@
+# Virtual Environment
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database files
+jobs.db
+celerybeat-schedule.db
+*.db
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+flask.log
+celery-worker.log
+celery-beat.log
+
+# Uploads
+uploads/
+*.pdf
+*.doc
+*.docx
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+coverage.xml
+*.cover
+
+# Docker
+.dockerignore

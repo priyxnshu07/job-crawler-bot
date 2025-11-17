@@ -1,0 +1,94 @@
+================================================================================
+                    JOB CRAWLER BOT - SIMPLE INSTRUCTIONS
+================================================================================
+
+STEP 1: FIRST TIME SETUP (Do this once)
+
+    Windows:
+    - Double-click: SETUP.bat
+    - Wait for it to finish
+    - Done!
+
+    Mac:
+    - Double-click: SETUP.command
+    - Wait for it to finish
+    - Done!
+
+
+STEP 2: RUN THE APPLICATION
+
+    Windows:
+    - Double-click: RUN.bat
+    - Wait 10 seconds
+    - Browser opens automatically
+    - Done!
+
+    Mac:
+    - Double-click: RUN.command
+    - Wait 10 seconds
+    - Browser opens automatically
+    - Done!
+
+
+STEP 3: STOP THE APPLICATION
+
+    Windows:
+    - Close the 3 windows that opened (Flask, Worker, Scheduler)
+    - Done!
+
+    Mac:
+    - Click the terminal window
+    - Press Ctrl+C
+    - Done!
+
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: "Virtual environment not found"
+Solution: Run SETUP.bat (Windows) or SETUP.command (Mac) first
+
+Problem: Files won't run when double-clicked
+Solution: 
+    Windows: Right-click → "Run as administrator"
+    Mac: Right-click → "Open With" → Terminal
+
+Problem: Browser didn't open
+Solution: Manually visit: http://127.0.0.1:5001
+
+Problem: "Python not found"
+Solution: Install Python from https://www.python.org/
+
+
+================================================================================
+EMAIL SETUP (Optional)
+================================================================================
+
+1. Get Gmail App Password:
+   - Visit: https://myaccount.google.com/apppasswords
+   - Create app password
+   - Copy the 16-digit password
+
+2. Create .env file in project folder:
+   - Create new text file
+   - Name it: .env
+   - Add these lines:
+     EMAIL_USER=your-email@gmail.com
+     EMAIL_PASSWORD=your-16-digit-password
+   - Save file
+
+3. Restart the app
+
+
+================================================================================
+THAT'S IT! JUST DOUBLE-CLICK THE FILES!
+================================================================================
+
+Windows users: SETUP.bat → RUN.bat
+Mac users: SETUP.command → RUN.command
+
+No terminal needed! No commands to type! Just double-click!
+
+================================================================================
+
