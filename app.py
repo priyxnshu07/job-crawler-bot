@@ -894,16 +894,25 @@ def send_job_alert_email(user_email, user_skills, matched_jobs, user_email_confi
         msg['To'] = user_email
         
         # Send email using smtplib
-        print(f"   Connecting to {smtp_server}:{smtp_port}...")
+        print(f"   Resolving {smtp_server} to IPv4...")
+        try:
+            # Explicitly resolve to IPv4 to avoid Network Unreachable errors
+            smtp_ip = socket.gethostbyname(smtp_server)
+            print(f"   Resolved to: {smtp_ip}")
+        except Exception as e:
+            print(f"   DNS resolution failed: {e}")
+            smtp_ip = smtp_server # Fallback to hostname
+            
+        print(f"   Connecting to {smtp_ip}:{smtp_port}...")
         
-        server = None # Initialize server to None
+        server = None 
         try:
             if int(smtp_port) == 465:
                 # SSL Connection
-                server = smtplib.SMTP_SSL(smtp_server, int(smtp_port))
+                server = smtplib.SMTP_SSL(smtp_ip, int(smtp_port))
             else:
                 # TLS Connection
-                server = smtplib.SMTP(smtp_server, int(smtp_port))
+                server = smtplib.SMTP(smtp_ip, int(smtp_port))
                 server.starttls()
                 
             server.login(smtp_username, smtp_password)
