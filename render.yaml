@@ -1,9 +1,8 @@
 services:
   - type: web
     name: job-crawler-web
-    env: python
-    buildCommand: pip install -r requirements.txt && python -m spacy download en_core_web_sm
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    env: docker
+    # buildCommand and startCommand are ignored for Docker, but we'll remove them to be clean
     envVars:
       - key: FLASK_ENV
         value: production
