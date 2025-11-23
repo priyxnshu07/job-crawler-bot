@@ -856,17 +856,7 @@ def test_email():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
-                            all_jobs.extend(jobs)
-                            time.sleep(2)
-                        except Exception as e:
-                            print(f"Error scraping {query} in {location}: {e}")
-                            continue
-            else:
-                default_locations = [
-                    "Bangalore, Karnataka", "Chandigarh", "Delhi", "Gurgaon, Haryana",
-                    "Noida, Uttar Pradesh", "Pune, Maharashtra", "Hyderabad, Telangana",
-                    "Mumbai, Maharashtra", "Chennai, Tamil Nadu", "Remote"
-                ]
+# Orphaned code removed
                 
                 all_jobs = []
                 

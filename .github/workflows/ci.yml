@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ main, develop ]
 
-# jobs:
+jobs:
 #   test:
 #     runs-on: ubuntu-latest
 #     # ... (tests disabled for free tier deployment) ...
