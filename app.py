@@ -778,32 +778,84 @@ def search_jobs():
 @login_required
 def trigger_scrape():
     """Manually triggers scraping (runs in background thread)."""
-    import threading
-    
-    def run_scrape():
-        """Run scraping in background."""
-        try:
-            # Get all users with skills
-            conn = get_db_connection()
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    # ... existing code ...
+    return "Scraping started in background"
+
+@app.route('/test-scrape')
+@login_required
+def test_scrape():
+    """
+    Runs a synchronous scrape for the current user and returns the results immediately.
+    Useful for debugging "No jobs found".
+    """
+    try:
+        user_skills = current_user.skills
+        if not user_skills:
+            return jsonify({"status": "error", "message": "No skills found. Please upload a resume first."})
             
-            cursor.execute("""
-                SELECT id, email, skills, preferred_location
-                FROM users 
-                WHERE skills IS NOT NULL AND array_length(skills, 1) > 0
-            """)
-            users = cursor.fetchall()
+        # Build queries
+        queries = build_search_queries_from_skills(user_skills)
+        if not queries:
+            return jsonify({"status": "error", "message": "Could not generate queries from skills."})
             
-            if not users:
-                # Fallback: scrape for common Python jobs
-                default_locations = ["Bangalore, Karnataka", "Delhi", "Mumbai, Maharashtra", "Remote"]
-                queries = ["python developer", "python engineer", "python backend developer"]
-                
-                all_jobs = []
-                for location in default_locations[:3]:
-                    for query in queries:
-                        try:
-                            jobs = scrape_indeed_jobs(query=query, location=location, max_jobs=3)
+        # Use preferred location or default
+        location = current_user.preferred_location or "India"
+        
+        results = []
+        # Try just the first query to save time
+        query = queries[0]
+        
+        print(f"Testing scrape for: {query} in {location}")
+        jobs = scrape_indeed_jobs(query=query, location=location, max_jobs=5)
+        
+        return jsonify({
+            "status": "success", 
+            "query": query,
+            "location": location,
+            "jobs_found": len(jobs),
+            "jobs": jobs
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+@app.route('/test-email')
+@login_required
+def test_email():
+    """Sends a test email to the current user."""
+    try:
+        # Get user's email config
+        user_email_config = None
+        if current_user.email_config:
+            user_email_config = current_user.email_config
+            
+        # Send test email
+        msg = Message('Job Crawler - Test Email',
+                    recipients=[current_user.email])
+        msg.body = "This is a test email from your Job Crawler Bot. If you see this, email alerts are working!"
+        
+        # Use custom config if available
+        if user_email_config:
+            # Create a temporary mail instance for this request
+            temp_app = Flask(__name__)
+            temp_app.config.update({
+                'MAIL_SERVER': user_email_config['smtp_server'],
+                'MAIL_PORT': user_email_config['smtp_port'],
+                'MAIL_USERNAME': user_email_config['username'],
+                'MAIL_PASSWORD': user_email_config['password'],
+                'MAIL_USE_TLS': True,
+                'MAIL_DEFAULT_SENDER': user_email_config['username']
+            })
+            temp_mail = Mail(temp_app)
+            with temp_app.app_context():
+                temp_mail.send(msg)
+        else:
+            # Use default app mail
+            mail.send(msg)
+            
+        return jsonify({"status": "success", "message": f"Test email sent to {current_user.email}"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
                             all_jobs.extend(jobs)
                             time.sleep(2)
                         except Exception as e:
