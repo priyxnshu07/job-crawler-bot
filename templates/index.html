@@ -116,12 +116,29 @@
             </ol>
           </div>
           <div class="form-group">
-            <input type="text" id="smtpServer" class="input-field" placeholder="SMTP Server (e.g. smtp.gmail.com)"
-              style="font-size: 0.8rem; padding: 0.5rem;">
+            <label style="font-size: 0.75rem; font-weight: 600; margin-bottom: 0.25rem; display: block;">SMTP
+              Server</label>
+            <select id="smtpServerSelect" class="input-field"
+              style="font-size: 0.8rem; padding: 0.5rem; margin-bottom: 0.5rem;">
+              <option value="smtp.gmail.com">Gmail (smtp.gmail.com)</option>
+              <option value="smtp.office365.com">Outlook (smtp.office365.com)</option>
+              <option value="smtp.mail.yahoo.com">Yahoo (smtp.mail.yahoo.com)</option>
+              <option value="custom">Custom...</option>
+            </select>
+            <input type="text" id="smtpServer" class="input-field" placeholder="Enter SMTP Server"
+              style="font-size: 0.8rem; padding: 0.5rem; display: none;">
           </div>
           <div class="form-group">
-            <input type="text" id="smtpPort" class="input-field" placeholder="Port (e.g. 587)"
-              style="font-size: 0.8rem; padding: 0.5rem;">
+            <label style="font-size: 0.75rem; font-weight: 600; margin-bottom: 0.25rem; display: block;">Port</label>
+            <select id="smtpPortSelect" class="input-field"
+              style="font-size: 0.8rem; padding: 0.5rem; margin-bottom: 0.5rem;">
+              <option value="587">587 (TLS - Recommended)</option>
+              <option value="465">465 (SSL)</option>
+              <option value="25">25 (Unencrypted)</option>
+              <option value="custom">Custom...</option>
+            </select>
+            <input type="text" id="smtpPort" class="input-field" placeholder="Enter Port"
+              style="font-size: 0.8rem; padding: 0.5rem; display: none;">
           </div>
           <div class="form-group">
             <input type="email" id="emailUser" class="input-field" placeholder="Your Email"
@@ -336,10 +353,37 @@
       emailConfigForm.style.display = emailConfigForm.style.display === 'none' ? 'block' : 'none';
     });
 
+    // Email Config Dropdowns
+    smtpServerSelect.addEventListener('change', () => {
+      if (smtpServerSelect.value === 'custom') {
+        smtpServerInput.style.display = 'block';
+        smtpServerInput.value = '';
+        smtpServerInput.focus();
+      } else {
+        smtpServerInput.style.display = 'none';
+        smtpServerInput.value = smtpServerSelect.value;
+      }
+    });
+
+    smtpPortSelect.addEventListener('change', () => {
+      if (smtpPortSelect.value === 'custom') {
+        smtpPortInput.style.display = 'block';
+        smtpPortInput.value = '';
+        smtpPortInput.focus();
+      } else {
+        smtpPortInput.style.display = 'none';
+        smtpPortInput.value = smtpPortSelect.value;
+      }
+    });
+
+    // Initialize inputs with dropdown values
+    smtpServerInput.value = smtpServerSelect.value;
+    smtpPortInput.value = smtpPortSelect.value;
+
     saveEmailConfig.addEventListener('click', async () => {
       const data = {
-        smtp_server: document.getElementById('smtpServer').value,
-        smtp_port: document.getElementById('smtpPort').value,
+        smtp_server: smtpServerInput.value,
+        smtp_port: smtpPortInput.value,
         email_username: document.getElementById('emailUser').value,
         email_password: document.getElementById('emailPass').value
       };

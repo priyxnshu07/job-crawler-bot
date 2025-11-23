@@ -62,12 +62,20 @@ def scrape_indeed(query, location, max_jobs=10):
     try:
         # Try Indian domain first for better results in India
         domain = "in.indeed.com" if "india" in location.lower() or "bangalore" in location.lower() or "delhi" in location.lower() or "mumbai" in location.lower() else "www.indeed.com"
-        url = f"https://{domain}/jobs"
+        base_url = f"https://{domain}/"
+        search_url = f"https://{domain}/jobs"
         
-        # Add random delay
-        time.sleep(random.uniform(1, 3))
+        # Use a session to persist cookies
+        session = requests.Session()
+        session.headers.update(headers)
         
-        response = requests.get(url, params=params, headers=headers, timeout=20)
+        # 1. Visit Homepage first to get cookies
+        print(f"   Visiting {base_url} to establish session...")
+        session.get(base_url, timeout=10)
+        time.sleep(random.uniform(1, 2))
+        
+        # 2. Perform Search
+        response = session.get(search_url, params=params, timeout=20)
         
         if response.status_code != 200:
             print(f"⚠️ Indeed returned status {response.status_code}")
