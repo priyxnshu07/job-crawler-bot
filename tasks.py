@@ -35,29 +35,39 @@ def scrape_indeed(query, location, max_jobs=10):
     print(f"🔎 Scraping Indeed for '{query}' in '{location}'...")
     
     headers = {
-        'User-Agent': get_random_user_agent(),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
         'Referer': 'https://www.google.com/',
-        'DNT': '1',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'cross-site',
+        'Sec-Fetch-User': '?1',
+        'Cache-Control': 'max-age=0',
     }
     
     params = {
         'q': query,
         'l': location,
         'sort': 'date',
-        'limit': 50
+        'limit': 50,
+        'from': 'searchOnHP',
+        'vjk': ''
     }
     
     jobs = []
     try:
         # Try Indian domain first for better results in India
-        domain = "in.indeed.com" if "india" in location.lower() or "bangalore" in location.lower() or "delhi" in location.lower() else "www.indeed.com"
+        domain = "in.indeed.com" if "india" in location.lower() or "bangalore" in location.lower() or "delhi" in location.lower() or "mumbai" in location.lower() else "www.indeed.com"
         url = f"https://{domain}/jobs"
         
-        response = requests.get(url, params=params, headers=headers, timeout=15)
+        # Add random delay
+        time.sleep(random.uniform(1, 3))
+        
+        response = requests.get(url, params=params, headers=headers, timeout=20)
         
         if response.status_code != 200:
             print(f"⚠️ Indeed returned status {response.status_code}")
