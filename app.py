@@ -896,10 +896,6 @@ def send_job_alert_email(user_email, user_skills, matched_jobs, user_email_confi
         # Send email using smtplib
         print(f"   Connecting to {smtp_server}:{smtp_port}...")
         
-        # Set a timeout for the connection
-        import socket
-        socket.setdefaulttimeout(10)  # 10 seconds timeout
-        
         server = None # Initialize server to None
         try:
             if int(smtp_port) == 465:
