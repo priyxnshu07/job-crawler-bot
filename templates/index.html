@@ -10,6 +10,10 @@
 </head>
 
 <body>
+  <!-- Toast Container -->
+  <div id="toast-container"
+    style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px;">
+  </div>
   <nav class="navbar animate-fade-in">
     <div class="brand">
       <i class="fa-solid fa-robot"></i>
@@ -198,6 +202,53 @@
 
     let isPersonalized = true;
 
+    // --- Toast Notification System ---
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+
+      // Colors based on type
+      let bg = '#fff';
+      let border = 'var(--primary)';
+      let icon = 'fa-circle-info';
+
+      if (type === 'success') { border = 'var(--success)'; icon = 'fa-check-circle'; }
+      if (type === 'error') { border = 'var(--danger)'; icon = 'fa-circle-exclamation'; }
+      if (type === 'warning') { border = 'var(--warning)'; icon = 'fa-triangle-exclamation'; }
+
+      toast.style.cssText = `
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-left: 4px solid ${border};
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 300px;
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        font-size: 0.9rem;
+        font-weight: 500;
+      `;
+
+      toast.innerHTML = `<i class="fa-solid ${icon}" style="color: ${border}; font-size: 1.1rem;"></i> <span>${message}</span>`;
+
+      container.appendChild(toast);
+
+      // Animate in
+      requestAnimationFrame(() => {
+        toast.style.transform = 'translateX(0)';
+      });
+
+      // Remove after 3s
+      setTimeout(() => {
+        toast.style.transform = 'translateX(120%)';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
     // --- Job Fetching ---
     async function fetchJobs(query = '', personalized = false) {
       jobListings.innerHTML = `
@@ -253,6 +304,7 @@
       } catch (err) {
         console.error(err);
         jobListings.innerHTML = `<p style="color: var(--danger); text-align: center;">Error loading jobs.</p>`;
+        showToast('Failed to load jobs', 'error');
       }
     }
 
@@ -298,9 +350,9 @@
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams(data)
         });
-        if (res.ok) alert('Email settings saved!');
-        else alert('Failed to save settings');
-      } catch (e) { alert('Error saving settings'); }
+        if (res.ok) showToast('Email settings saved successfully!', 'success');
+        else showToast('Failed to save settings', 'error');
+      } catch (e) { showToast('Error saving settings', 'error'); }
     });
 
     // Toggle Alerts
@@ -310,39 +362,55 @@
         const data = await res.json();
         toggleEmailAlertsBtn.textContent = data.enabled ? 'Enabled' : 'Disabled';
         toggleEmailAlertsBtn.className = `btn btn-sm ${data.enabled ? 'btn-primary' : 'btn-ghost'}`;
+        showToast(`Email alerts ${data.enabled ? 'enabled' : 'disabled'}`, 'info');
       } catch (err) {
-        alert('Error toggling alerts');
+        showToast('Error toggling alerts', 'error');
       }
     });
 
     // Debug Buttons
     testEmailBtn.addEventListener('click', async () => {
+      const originalText = testEmailBtn.textContent;
       testEmailBtn.textContent = 'Sending...';
+      testEmailBtn.disabled = true;
+
       try {
         const res = await fetch('/test-email');
         const data = await res.json();
-        alert(data.message);
+
+        if (data.status === 'success') {
+          showToast(data.message, 'success');
+        } else {
+          showToast(data.message, 'error');
+        }
       } catch (err) {
-        alert('Error sending test email');
+        showToast('Network error while sending email', 'error');
       }
-      testEmailBtn.textContent = 'Test Email';
+
+      testEmailBtn.textContent = originalText;
+      testEmailBtn.disabled = false;
     });
 
     testScrapeBtn.addEventListener('click', async () => {
+      const originalText = testScrapeBtn.textContent;
       testScrapeBtn.textContent = 'Scraping...';
+      testScrapeBtn.disabled = true;
+
       try {
         const res = await fetch('/test-scrape');
         const data = await res.json();
         if (data.status === 'success') {
-          alert(`Scrape complete! Found ${data.jobs_found} jobs. Refreshing...`);
+          showToast(`Scrape complete! Found ${data.jobs_found} jobs.`, 'success');
           fetchJobs('', true);
         } else {
-          alert(`Scrape failed: ${data.message}`);
+          showToast(`Scrape failed: ${data.message}`, 'error');
         }
       } catch (err) {
-        alert('Error triggering scrape');
+        showToast('Error triggering scrape', 'error');
       }
-      testScrapeBtn.textContent = 'Test Scraper';
+
+      testScrapeBtn.textContent = originalText;
+      testScrapeBtn.disabled = false;
     });
 
     // Initial Load
