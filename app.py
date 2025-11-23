@@ -15,7 +15,7 @@ from flask_mail import Mail, Message
 import psycopg2
 import psycopg2.extras
 from config import DATABASE_CONFIG, EMAIL_CONFIG
-from tasks import scrape_jobs_task
+# from tasks import scrape_jobs_task
 from database_setup import setup_database
 import os
 # --- NEW IMPORTS ---
