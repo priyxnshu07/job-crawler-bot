@@ -819,43 +819,7 @@ def test_scrape():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
-@app.route('/test-email')
-@login_required
-def test_email():
-    """Sends a test email to the current user."""
-    try:
-        # Get user's email config
-        user_email_config = None
-        if current_user.email_config:
-            user_email_config = current_user.email_config
-            
-        # Send test email
-        msg = Message('Job Crawler - Test Email',
-                    recipients=[current_user.email])
-        msg.body = "This is a test email from your Job Crawler Bot. If you see this, email alerts are working!"
-        
-        # Use custom config if available
-        if user_email_config:
-            # Create a temporary mail instance for this request
-            temp_app = Flask(__name__)
-            temp_app.config.update({
-                'MAIL_SERVER': user_email_config['smtp_server'],
-                'MAIL_PORT': user_email_config['smtp_port'],
-                'MAIL_USERNAME': user_email_config['username'],
-                'MAIL_PASSWORD': user_email_config['password'],
-                'MAIL_USE_TLS': True,
-                'MAIL_DEFAULT_SENDER': user_email_config['username']
-            })
-            temp_mail = Mail(temp_app)
-            with temp_app.app_context():
-                temp_mail.send(msg)
-        else:
-            # Use default app mail
-            mail.send(msg)
-            
-        return jsonify({"status": "success", "message": f"Test email sent to {current_user.email}"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
+
 
 
 
@@ -1041,20 +1005,13 @@ def test_email():
     conn.close()
     
     if not user_data or not user_data.get('email_username'):
-        flash('Please configure your email settings first!', 'error')
-        return redirect(url_for('email_settings'))
-    
-    # Build email config - password is stored encrypted, but we can use it directly
-    # since bcrypt stores it in a way we can't decrypt. We need to store it differently.
-    # Actually, for email passwords, we should use a reversible encryption or just store it
-    # as-is (it's already an app password, not the main password). Let's use base64 encoding.
-    # But actually, let's just store it as-is since it's an app password, not the main account password.
+        return jsonify({"status": "error", "message": "Please configure your email settings first!"})
     
     email_config = {
         'smtp_server': user_data.get('email_smtp_server', 'smtp.gmail.com'),
         'smtp_port': user_data.get('email_smtp_port', 587),
         'username': user_data.get('email_username'),
-        'password': user_data.get('email_password')  # Store as-is (it's already an app-specific password)
+        'password': user_data.get('email_password')
     }
     
     try:
@@ -1063,14 +1020,12 @@ def test_email():
                      'apply_link': 'http://127.0.0.1:5001', 'match_score': 100, 'matched_skills': ['Test']}]
         
         if send_job_alert_email(current_user.email, ['Test'], test_jobs, email_config):
-            flash('✅ Test email sent! Check your inbox.', 'success')
+            return jsonify({"status": "success", "message": "Test email sent! Check your inbox."})
         else:
-            flash('❌ Failed to send test email. Please check your email settings and app password.', 'error')
+            return jsonify({"status": "error", "message": "Failed to send test email. Please check your email settings and app password."})
     except Exception as e:
-        flash('❌ Email configuration error. Please check your settings.', 'error')
         print(f"Email test error: {e}")
-    
-    return redirect(url_for('index'))
+        return jsonify({"status": "error", "message": "Email configuration error. Please check your settings."})
 
 @app.route('/update-location', methods=['POST'])
 @login_required
