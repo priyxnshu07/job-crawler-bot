@@ -65,7 +65,8 @@ from datetime import datetime, timedelta
 import sys
 
 # Import scraping functions from tasks.py
-from tasks import scrape_indeed_jobs, build_search_queries_from_skills
+# Import scraping functions from tasks.py
+from tasks import scrape_jobs, build_search_queries_from_skills
 
 def run_background_scraper():
     """
@@ -118,18 +119,18 @@ def run_background_scraper():
                 for location in default_locations[:3]:
                     for query in queries:
                         try:
-                            print(f"  Scraping Indeed: {query} in {location}", flush=True)
+                            print(f"  Scraping: {query} in {location}", flush=True)
                             sys.stdout.flush()
-                            # scrape_indeed_jobs handles all errors internally
-                            jobs = scrape_indeed_jobs(query=query, location=location, max_jobs=3)
+                            # scrape_jobs handles all errors internally
+                            jobs = scrape_jobs(query=query, location=location, max_jobs=5)
                             if jobs:
                                 all_jobs.extend(jobs)
                                 print(f"    Found {len(jobs)} jobs", flush=True)
                                 sys.stdout.flush()
-                            # Delay is already in scrape_indeed_jobs
+                            # Delay is already in scrape_jobs
                             time.sleep(1)  # Small additional delay
                         except Exception as e:
-                            # scrape_indeed_jobs should never raise, but just in case
+                            # scrape_jobs should never raise, but just in case
                             print(f"  Unexpected error scraping {query} in {location}: {str(e)[:50]}", flush=True)
                             sys.stdout.flush()
                             continue
@@ -177,18 +178,18 @@ def run_background_scraper():
                     for location in locations[:3]:  # Limit to 3 locations per user
                         for query in queries[:3]:  # Limit to 3 queries per location
                             try:
-                                print(f"    Scraping Indeed: {query} in {location}", flush=True)
+                                print(f"    Scraping: {query} in {location}", flush=True)
                                 sys.stdout.flush()
-                                # scrape_indeed_jobs handles all errors internally
-                                jobs = scrape_indeed_jobs(query=query, location=location, max_jobs=3)
+                                # scrape_jobs handles all errors internally
+                                jobs = scrape_jobs(query=query, location=location, max_jobs=5)
                                 if jobs:
                                     all_jobs.extend(jobs)
                                     print(f"      Found {len(jobs)} jobs", flush=True)
                                     sys.stdout.flush()
-                                # Delay is already in scrape_indeed_jobs, but add small extra delay
+                                # Delay is already in scrape_jobs, but add small extra delay
                                 time.sleep(1)  # Small additional delay
                             except Exception as e:
-                                # scrape_indeed_jobs should never raise, but just in case
+                                # scrape_jobs should never raise, but just in case
                                 print(f"    Unexpected error scraping {query} in {location}: {str(e)[:50]}", flush=True)
                                 sys.stdout.flush()
                                 continue
@@ -806,7 +807,7 @@ def test_scrape():
         query = queries[0]
         
         print(f"Testing scrape for: {query} in {location}")
-        jobs = scrape_indeed_jobs(query=query, location=location, max_jobs=5)
+        jobs = scrape_jobs(query=query, location=location, max_jobs=10)
         
         return jsonify({
             "status": "success", 
