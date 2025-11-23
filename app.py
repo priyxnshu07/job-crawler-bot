@@ -20,17 +20,9 @@ from database_setup import setup_database
 import os
 # --- NEW IMPORTS ---
 import re
-import spacy
 from werkzeug.utils import secure_filename
 
-# Try to load spaCy model, download if not available
-try:
-    nlp = spacy.load('en_core_web_sm')
-except OSError:
-    print("spaCy model 'en_core_web_sm' not found. Please install it with:")
-    print("python -m spacy download en_core_web_sm")
-    print("For now, continuing without spaCy NER...")
-    nlp = None
+nlp = None # Placeholder if needed, but we don't use it anymore
 
 # Import file reading utilities
 from PyPDF2 import PdfReader
