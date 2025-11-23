@@ -47,6 +47,9 @@ def scrape_indeed(query, location, max_jobs=10):
         'Sec-Fetch-Site': 'cross-site',
         'Sec-Fetch-User': '?1',
         'Cache-Control': 'max-age=0',
+        'sec-ch-ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"macOS"',
     }
     
     params = {
@@ -220,7 +223,8 @@ def scrape_timesjobs(query, location, max_jobs=10):
             'txtLocation': location
         }
         
-        response = requests.get(base_url, params=params, headers=headers, timeout=15)
+        # Disable SSL verification for TimesJobs as a workaround for certificate issues
+        response = requests.get(base_url, params=params, headers=headers, timeout=15, verify=False)
         soup = BeautifulSoup(response.text, 'html.parser')
         
         job_cards = soup.find_all('li', class_='clearfix job-bx wht-shd-bx')

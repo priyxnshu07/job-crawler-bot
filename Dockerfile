@@ -13,7 +13,11 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* && \
+    update-ca-certificates
+
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
 # Copy requirements first for better caching
 COPY requirements.txt /app/

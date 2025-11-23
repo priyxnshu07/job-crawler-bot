@@ -893,18 +893,32 @@ def send_job_alert_email(user_email, user_skills, matched_jobs, user_email_confi
         msg['From'] = f"Job Crawler <{smtp_username}>"
         msg['To'] = user_email
         
-        # Attach HTML body
-        html_part = MIMEText(html_body, 'html')
-        msg.attach(html_part)
-        
         # Send email using smtplib
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()
+        print(f"   Connecting to {smtp_server}:{smtp_port}...")
+        
+        # Set a timeout for the connection
+        import socket
+        socket.setdefaulttimeout(10)  # 10 seconds timeout
+        
+        server = None # Initialize server to None
+        try:
+            if int(smtp_port) == 465:
+                # SSL Connection
+                server = smtplib.SMTP_SSL(smtp_server, int(smtp_port))
+            else:
+                # TLS Connection
+                server = smtplib.SMTP(smtp_server, int(smtp_port))
+                server.starttls()
+                
             server.login(smtp_username, smtp_password)
             server.send_message(msg)
+            
+            print(f"✅ Email sent successfully to {user_email}")
+            return True
+        finally:
+            if server:
+                server.quit()
         
-        print(f"✓ Sent email to {user_email}")
-        return True
     except Exception as e:
         # Silent error - don't show scary messages to users
         error_msg = str(e)
