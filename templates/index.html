@@ -1,282 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard - Job Crawler</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
-  <style>
-    :root {
-      --primary: #4481eb;
-      --secondary: #04befe;
-      --accent: #FFA500;
-      --dark: #333;
-      --light: #f0f2f5;
-      --white: #fff;
-      --gray: #acacac;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Poppins', sans-serif; background: var(--light); color: var(--dark); }
-
-    .navbar {
-      background: var(--white);
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-    .brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-    .user-menu { display: flex; align-items: center; gap: 15px; }
-    .user-info { font-size: 0.9rem; font-weight: 500; }
-    .logout-btn {
-      padding: 8px 20px;
-      border: 2px solid var(--primary);
-      border-radius: 50px;
-      color: var(--primary);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.9rem;
-      transition: 0.3s;
-    }
-    .logout-btn:hover { background: var(--primary); color: var(--white); }
-
-    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; display: grid; grid-template-columns: 300px 1fr; gap: 2rem; }
-
-    .sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
-    .card { background: var(--white); padding: 1.5rem; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-    
-    .card h3 { font-size: 1.1rem; margin-bottom: 1rem; color: var(--dark); display: flex; align-items: center; gap: 8px; }
-    .card h3 i { color: var(--primary); }
-
-    .skills-container { display: flex; flex-wrap: wrap; gap: 8px; }
-    .skill-tag { background: #e3f2fd; color: var(--primary); padding: 5px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 500; }
-    .no-skills { font-size: 0.85rem; color: var(--gray); font-style: italic; }
-
-    .upload-box {
-      border: 2px dashed #cbd5e1;
-      border-radius: 15px;
-      padding: 1.5rem;
-      text-align: center;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .upload-box:hover { border-color: var(--primary); background: #f8faff; }
-    .upload-box i { font-size: 2rem; color: var(--gray); margin-bottom: 10px; }
-    .upload-box p { font-size: 0.85rem; color: var(--gray); }
-
-    .btn {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 50px;
-      background: var(--primary);
-      color: var(--white);
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.3s;
-      margin-top: 10px;
-    }
-    .btn:hover { background: #3367d6; }
-    .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
-    .btn-outline:hover { background: var(--primary); color: var(--white); }
-    .btn-accent { background: var(--accent); }
-    .btn-accent:hover { background: #e69500; }
-
-    .main-content { display: flex; flex-direction: column; gap: 1.5rem; }
-    
-    .search-bar {
-      display: flex;
-      gap: 10px;
-      background: var(--white);
-      padding: 10px;
-      border-radius: 50px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    }
-    .search-bar input {
-      flex: 1;
-      border: none;
-      outline: none;
-      padding: 0 15px;
-      font-size: 1rem;
-      font-family: 'Poppins', sans-serif;
-    }
-    .search-bar select {
-      border: none;
-      outline: none;
-      background: #f0f2f5;
-      padding: 0 15px;
-      border-radius: 50px;
-      color: var(--dark);
-      font-family: 'Poppins', sans-serif;
-    }
-    .search-btn {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: none;
-      background: var(--primary);
-      color: var(--white);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      transition: 0.3s;
-    }
-    .search-btn:hover { transform: scale(1.05); }
-
-    .jobs-grid { display: grid; gap: 1.5rem; }
-    .job-card {
-      background: var(--white);
-      padding: 1.5rem;
-      border-radius: 20px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: 0.3s;
-    }
-    .job-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-    
-    .job-details h2 { font-size: 1.2rem; margin-bottom: 5px; color: var(--dark); }
-    .job-details p { color: var(--gray); font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
-    .job-details p i { color: var(--primary); font-size: 0.8rem; }
-    
-    .match-badge {
-      background: #e0f2f1;
-      color: #00695c;
-      padding: 5px 12px;
-      border-radius: 50px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-top: 10px;
-      display: inline-block;
-    }
-    .match-badge.high { background: #e8f5e9; color: #2e7d32; }
-    .match-badge.med { background: #fff8e1; color: #f57f17; }
-    
-    .apply-btn {
-      padding: 10px 25px;
-      background: var(--primary);
-      color: var(--white);
-      text-decoration: none;
-      border-radius: 50px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      transition: 0.3s;
-    }
-    .apply-btn:hover { background: #3367d6; box-shadow: 0 5px 15px rgba(68, 129, 235, 0.3); }
-
-    .debug-panel { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
-    .debug-btn { padding: 5px 10px; font-size: 0.8rem; margin-right: 5px; }
-
-    @media (max-width: 900px) {
-      .container { grid-template-columns: 1fr; }
-      .sidebar { order: 2; }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Crawler Bot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
-  <nav class="navbar">
+  <nav class="navbar animate-fade-in">
     <div class="brand">
-      <i class="fas fa-robot"></i> Job Crawler
+      <i class="fa-solid fa-robot"></i>
+      <span>Job Crawler Bot</span>
     </div>
-    <div class="user-menu">
-      <div class="user-info">
-        <i class="fas fa-user-circle"></i> {{ current_user.email }}
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <div style="text-align: right; line-height: 1.2;">
+        <div style="font-weight: 600;">{{ current_user.email }}</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">Member</div>
       </div>
-      <a href="/logout" class="logout-btn">Logout</a>
+      <a href="/logout" class="btn btn-outline" style="padding: 0.5rem 1rem;">Logout</a>
     </div>
   </nav>
 
-  <div class="container">
-    <aside class="sidebar">
-      <!-- Profile Card -->
+  <div class="container animate-fade-in">
+    <!-- Sidebar -->
+    <aside style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+      <!-- Profile/Skills -->
       <div class="card">
-        <h3><i class="fas fa-id-card"></i> Your Skills</h3>
-        <div class="skills-container">
+        <div class="card-header">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          Your Skills
+        </div>
+        <div class="skills-grid">
           {% if skills %}
-            {% for skill in skills %}
-              <span class="skill-tag">{{ skill }}</span>
-            {% endfor %}
+          {% for skill in skills %}
+          <span class="skill-tag">{{ skill }}</span>
+          {% endfor %}
           {% else %}
-            <span class="no-skills">No skills found. Upload your resume to get started.</span>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">No skills found. Upload your resume to extract them
+            automatically.</p>
           {% endif %}
         </div>
       </div>
 
-      <!-- Upload Card -->
+      <!-- Upload Resume -->
       <div class="card">
-        <h3><i class="fas fa-cloud-upload-alt"></i> Update Resume</h3>
+        <div class="card-header">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          Update Resume
+        </div>
         <form id="uploadForm" action="/upload_resume" method="POST" enctype="multipart/form-data">
-          <div class="upload-box" id="uploadArea">
-            <i class="fas fa-file-alt"></i>
-            <p>Drag & drop or click to upload PDF/DOCX</p>
+          <div class="upload-zone" id="uploadArea">
+            <i class="fa-regular fa-file-pdf upload-icon"></i>
+            <p style="font-weight: 500;">Click or Drag Resume</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">PDF, DOC, DOCX</p>
             <input type="file" name="resume" id="fileInput" accept=".pdf,.doc,.docx" style="display: none;" required>
           </div>
-          <button type="submit" class="btn">Upload & Analyze</button>
         </form>
       </div>
 
-      <!-- Settings Card -->
+      <!-- Settings -->
       <div class="card">
-        <h3><i class="fas fa-cog"></i> Preferences</h3>
-        <form action="/update-location" method="POST" style="margin-bottom: 15px;">
-          <label style="font-size: 0.85rem; color: var(--gray);">Preferred Location</label>
-          <input name="preferred_location" value="{{ preferred_location or '' }}" placeholder="e.g. Bangalore, Remote" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; margin-top: 5px; outline: none;">
-          <button type="submit" class="btn btn-outline" style="margin-top: 8px; padding: 5px;">Save Location</button>
+        <div class="card-header">
+          <i class="fa-solid fa-sliders"></i>
+          Preferences
+        </div>
+
+        <form action="/update-location" method="POST" class="form-group">
+          <label style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; display: block;">Preferred
+            Location</label>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" name="preferred_location" class="input-field" placeholder="e.g. Remote, Bangalore"
+              value="{{ preferred_location or '' }}">
+            <button type="submit" class="btn btn-primary" style="padding: 0.5rem;"><i
+                class="fa-solid fa-check"></i></button>
+          </div>
         </form>
-        
-        <div style="border-top: 1px solid #eee; padding-top: 15px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-size: 0.9rem; font-weight: 500;">Email Alerts</span>
-            <button id="toggleEmailAlerts" class="btn-accent" style="width: auto; padding: 5px 15px; font-size: 0.8rem;">
-              {{ 'Disable' if current_user.email_alerts_enabled else 'Enable' }}
-            </button>
+
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 1.5rem 0;">
+
+        <div class="card-header" style="font-size: 1rem;">
+          <i class="fa-solid fa-envelope"></i>
+          Email Alerts
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <span style="font-size: 0.9rem;">Status</span>
+          <button id="toggleEmailAlerts"
+            class="btn btn-sm {{ 'btn-primary' if current_user.email_alerts_enabled else 'btn-ghost' }}"
+            style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">
+            {{ 'Enabled' if current_user.email_alerts_enabled else 'Disabled' }}
+          </button>
+        </div>
+
+        <!-- Email Config Form -->
+        <form id="emailConfigForm"
+          style="display: none; background: var(--secondary); padding: 1rem; border-radius: 8px;">
+          <div class="form-group">
+            <input type="text" id="smtpServer" class="input-field" placeholder="SMTP Server (e.g. smtp.gmail.com)"
+              style="font-size: 0.8rem; padding: 0.5rem;">
           </div>
-          
-          <!-- Debug Tools -->
-          <div class="debug-panel">
-            <p style="font-size: 0.8rem; color: var(--gray); margin-bottom: 5px;">Debug Tools</p>
-            <button id="testEmailBtn" class="btn btn-outline debug-btn">Test Email</button>
-            <button id="testScrapeBtn" class="btn btn-outline debug-btn">Test Scraper</button>
+          <div class="form-group">
+            <input type="text" id="smtpPort" class="input-field" placeholder="Port (e.g. 587)"
+              style="font-size: 0.8rem; padding: 0.5rem;">
           </div>
+          <div class="form-group">
+            <input type="email" id="emailUser" class="input-field" placeholder="Your Email"
+              style="font-size: 0.8rem; padding: 0.5rem;">
+          </div>
+          <div class="form-group">
+            <input type="password" id="emailPass" class="input-field" placeholder="App Password"
+              style="font-size: 0.8rem; padding: 0.5rem;">
+          </div>
+          <button type="button" id="saveEmailConfig" class="btn btn-primary"
+            style="width: 100%; font-size: 0.8rem;">Save Config</button>
+        </form>
+        <button id="showEmailConfig" class="btn btn-ghost"
+          style="width: 100%; font-size: 0.8rem; margin-top: 0.5rem;">Configure Email</button>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+          <button id="testEmailBtn" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.5rem;">Test
+            Email</button>
+          <button id="testScrapeBtn" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.5rem;">Test
+            Scraper</button>
         </div>
       </div>
     </aside>
 
-    <main class="main-content">
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search jobs by title, skill, or company...">
-        <select id="locationFilter">
-          <option value="">Any Location</option>
-          <option value="Remote">Remote</option>
-          <option value="Bangalore">Bangalore</option>
-          <option value="Delhi">Delhi</option>
-          <option value="Mumbai">Mumbai</option>
-          <option value="Pune">Pune</option>
-          <option value="Hyderabad">Hyderabad</option>
-        </select>
-        <button id="searchBtn" class="search-btn"><i class="fas fa-search"></i></button>
-      </div>
+    <!-- Main Content -->
+    <main>
+      <div class="card animate-slide-in">
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+          <div style="position: relative; flex: 1;">
+            <i class="fa-solid fa-magnifying-glass"
+              style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+            <input type="text" id="searchInput" class="input-field" style="padding-left: 2.5rem;"
+              placeholder="Search jobs by title, company, or keyword...">
+          </div>
+          <select id="locationFilter" class="input-field" style="width: auto;">
+            <option value="">Any Location</option>
+            <option value="Remote">Remote</option>
+            <option value="Bangalore">Bangalore</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Mumbai">Mumbai</option>
+          </select>
+          <button id="searchBtn" class="btn btn-primary">Search</button>
+        </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="font-size: 1.5rem; color: var(--dark);">Job Matches</h2>
-        <button id="personalizedBtn" class="btn btn-accent" style="width: auto; padding: 8px 20px;">
-          <i class="fas fa-magic"></i> Personalized for You
-        </button>
-      </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h2 style="font-size: 1.25rem; font-weight: 700;">Job Matches</h2>
+          <button id="personalizedBtn" class="btn btn-ghost" style="color: var(--primary);">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Personalized
+          </button>
+        </div>
 
-      <div id="jobListings" class="jobs-grid">
-        <!-- Jobs will be inserted here -->
-        <div style="text-align: center; padding: 40px; color: var(--gray);">
-          <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 10px;"></i>
-          <p>Finding the best jobs for you...</p>
+        <div id="jobListings">
+          <!-- Jobs will be loaded here -->
+          <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p>Searching for the best jobs...</p>
+          </div>
         </div>
       </div>
     </main>
@@ -294,16 +180,19 @@
     const testScrapeBtn = document.getElementById('testScrapeBtn');
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
+    const showEmailConfig = document.getElementById('showEmailConfig');
+    const emailConfigForm = document.getElementById('emailConfigForm');
+    const saveEmailConfig = document.getElementById('saveEmailConfig');
 
     let isPersonalized = true;
 
     // --- Job Fetching ---
     async function fetchJobs(query = '', personalized = false) {
       jobListings.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: var(--gray);">
-          <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 10px;"></i>
-          <p>Searching...</p>
-        </div>`;
+                <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                    <p>Searching...</p>
+                </div>`;
 
       try {
         const params = new URLSearchParams();
@@ -318,36 +207,40 @@
 
         if (!jobs || jobs.length === 0) {
           jobListings.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: var(--gray);">
-              <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 10px;"></i>
-              <p>No jobs found. Try a different search or upload your resume.</p>
-            </div>`;
+                        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                            <i class="fa-solid fa-ghost" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                            <p>No jobs found. Try a different search or upload your resume.</p>
+                        </div>`;
           return;
         }
 
         jobs.forEach(job => {
           const score = job.match_score || 0;
-          let matchClass = 'match-badge';
-          if (score > 70) matchClass += ' high';
-          else if (score > 40) matchClass += ' med';
 
           const html = `
-            <div class="job-card">
-              <div class="job-details">
-                <h2>${job.title}</h2>
-                <p><i class="fas fa-building"></i> ${job.company}</p>
-                <p><i class="fas fa-map-marker-alt"></i> ${job.location}</p>
-                ${score > 0 ? `<span class="${matchClass}">${score}% Match</span>` : ''}
-              </div>
-              <a href="${job.apply_link}" target="_blank" class="apply-btn">Apply Now</a>
-            </div>
-          `;
+                        <div class="job-card">
+                            <div class="job-info">
+                                <h3>${job.title}</h3>
+                                <div class="job-meta">
+                                    <span><i class="fa-solid fa-building"></i> ${job.company}</span>
+                                    <span><i class="fa-solid fa-location-dot"></i> ${job.location}</span>
+                                </div>
+                                <div class="skills-grid">
+                                    ${(job.matched_skills || []).slice(0, 5).map(s => `<span class="skill-tag" style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">${s}</span>`).join('')}
+                                </div>
+                            </div>
+                            <div style="text-align: right; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
+                                ${score > 0 ? `<span class="match-score">${score}% Match</span>` : ''}
+                                <a href="${job.apply_link}" target="_blank" class="btn btn-primary" style="padding: 0.5rem 1.5rem; font-size: 0.85rem;">Apply</a>
+                            </div>
+                        </div>
+                    `;
           jobListings.insertAdjacentHTML('beforeend', html);
         });
 
       } catch (err) {
         console.error(err);
-        jobListings.innerHTML = `<p style="color: red; text-align: center;">Error loading jobs.</p>`;
+        jobListings.innerHTML = `<p style="color: var(--danger); text-align: center;">Error loading jobs.</p>`;
       }
     }
 
@@ -355,17 +248,17 @@
     searchBtn.addEventListener('click', () => fetchJobs(searchInput.value, false));
     personalizedBtn.addEventListener('click', () => fetchJobs('', true));
     locationFilter.addEventListener('change', () => fetchJobs(searchInput.value, isPersonalized));
-    
-    // File Upload Drag & Drop
+
+    // File Upload
     uploadArea.addEventListener('click', () => fileInput.click());
     uploadArea.addEventListener('dragover', (e) => {
       e.preventDefault();
       uploadArea.style.borderColor = 'var(--primary)';
-      uploadArea.style.background = '#f8faff';
+      uploadArea.style.background = '#eff6ff';
     });
     uploadArea.addEventListener('dragleave', () => {
       uploadArea.style.borderColor = '#cbd5e1';
-      uploadArea.style.background = 'transparent';
+      uploadArea.style.background = 'var(--secondary)';
     });
     uploadArea.addEventListener('drop', (e) => {
       e.preventDefault();
@@ -374,19 +267,43 @@
     });
     fileInput.addEventListener('change', () => document.getElementById('uploadForm').submit());
 
-    // Email Alerts Toggle
+    // Email Config
+    showEmailConfig.addEventListener('click', () => {
+      emailConfigForm.style.display = emailConfigForm.style.display === 'none' ? 'block' : 'none';
+    });
+
+    saveEmailConfig.addEventListener('click', async () => {
+      const data = {
+        smtp_server: document.getElementById('smtpServer').value,
+        smtp_port: document.getElementById('smtpPort').value,
+        email_username: document.getElementById('emailUser').value,
+        email_password: document.getElementById('emailPass').value
+      };
+
+      try {
+        const res = await fetch('/save-email-settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(data)
+        });
+        if (res.ok) alert('Email settings saved!');
+        else alert('Failed to save settings');
+      } catch (e) { alert('Error saving settings'); }
+    });
+
+    // Toggle Alerts
     toggleEmailAlertsBtn.addEventListener('click', async () => {
       try {
         const res = await fetch('/toggle-email-alerts', { method: 'POST' });
         const data = await res.json();
-        toggleEmailAlertsBtn.textContent = data.enabled ? 'Disable' : 'Enable';
-        alert(data.enabled ? 'Email alerts enabled!' : 'Email alerts disabled.');
+        toggleEmailAlertsBtn.textContent = data.enabled ? 'Enabled' : 'Disabled';
+        toggleEmailAlertsBtn.className = `btn btn-sm ${data.enabled ? 'btn-primary' : 'btn-ghost'}`;
       } catch (err) {
         alert('Error toggling alerts');
       }
     });
 
-    // --- Debug Buttons ---
+    // Debug Buttons
     testEmailBtn.addEventListener('click', async () => {
       testEmailBtn.textContent = 'Sending...';
       try {
@@ -404,8 +321,8 @@
       try {
         const res = await fetch('/test-scrape');
         const data = await res.json();
-        if(data.status === 'success') {
-          alert(`Scrape complete! Found ${data.jobs_found} jobs for query "${data.query}". Refreshing list...`);
+        if (data.status === 'success') {
+          alert(`Scrape complete! Found ${data.jobs_found} jobs. Refreshing...`);
           fetchJobs('', true);
         } else {
           alert(`Scrape failed: ${data.message}`);
@@ -420,6 +337,5 @@
     fetchJobs('', true);
   </script>
 </body>
+
 </html>
-
-

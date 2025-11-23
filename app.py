@@ -856,6 +856,37 @@ def test_email():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
+@app.route('/save-email-settings', methods=['POST'])
+@login_required
+def save_email_settings():
+    """Saves user email configuration."""
+    try:
+        smtp_server = request.form.get('smtp_server')
+        smtp_port = request.form.get('smtp_port')
+        username = request.form.get('email_username')
+        password = request.form.get('email_password')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Update user settings
+        cursor.execute("""
+            UPDATE users 
+            SET email_smtp_server = %s,
+                email_smtp_port = %s,
+                email_username = %s,
+                email_password = %s
+            WHERE id = %s
+        """, (smtp_server, smtp_port, username, password, current_user.id))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({"status": "success", "message": "Settings saved"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
 # Orphaned code removed
                 
                 all_jobs = []

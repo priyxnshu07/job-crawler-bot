@@ -114,70 +114,21 @@ def scrape_indeed_jobs(query="python developer", location="India", max_jobs=20):
             response = requests.get(url, headers=headers, timeout=20, allow_redirects=True)
         except requests.exceptions.Timeout:
             print(f"⚠️  Timeout for {query} in {location}. Skipping...", flush=True)
-            return jobs
-        except requests.exceptions.RequestException as e:
-            print(f"⚠️  Request error for {query} in {location}: {str(e)[:50]}. Skipping...", flush=True)
-            return jobs
-        
-        # Check for 403 or other errors
-        if response.status_code == 403:
-            # Silently skip - don't log to avoid spam
-            return jobs
+    }
+    
+    params = {
+        'q': query,
+        'l': location,
+        'sort': 'date',
+        'limit': 50
+    }
+    
+    jobs = []
+    try:
+        url = "https://in.indeed.com/jobs"
+        response = requests.get(url, params=params, headers=headers, timeout=10)
         
         if response.status_code != 200:
-            # Skip non-200 responses
-            return jobs
-        
-        # Parse HTML
-        try:
-            soup = BeautifulSoup(response.content, 'html.parser')
-        except Exception as e:
-            print(f"⚠️  Error parsing HTML for {query}: {str(e)[:50]}", flush=True)
-            return jobs
-        
-        # Find job cards on Indeed - try multiple selectors
-        job_cards = []
-        try:
-            job_cards = soup.find_all('div', class_='job_seen_beacon')
-        except:
-            pass
-        
-        if not job_cards:
-            try:
-                job_cards = soup.find_all('div', {'data-jk': True})
-            except:
-                pass
-        
-        if not job_cards:
-            # No jobs found - this is OK, not an error
-            return jobs
-        
-        # Extract jobs
-        for card in job_cards[:max_jobs]:
-            try:
-                # Extract job title
-                title = None
-                try:
-                    title_elem = card.find('h2', class_='jobTitle')
-                    if not title_elem:
-                        title_elem = card.find('h2')
-                    if title_elem:
-                        title = title_elem.get_text(strip=True)
-                except:
-                    pass
-                
-                if not title or len(title) < 2:
-                    continue
-                
-                # Extract company name
-                company = "Company not specified"
-                try:
-                    company_elem = card.find('span', class_='companyName')
-                    if not company_elem:
-                        company_elem = card.find('span', {'data-testid': 'company-name'})
-                    if company_elem:
-                        company = company_elem.get_text(strip=True)
-                except:
                     pass
                 
                 # Extract location
