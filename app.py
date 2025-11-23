@@ -857,36 +857,7 @@ def test_email():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
-@app.route('/save-email-settings', methods=['POST'])
-@login_required
-def save_email_settings():
-    """Saves user email configuration."""
-    try:
-        smtp_server = request.form.get('smtp_server')
-        smtp_port = request.form.get('smtp_port')
-        username = request.form.get('email_username')
-        password = request.form.get('email_password')
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Update user settings
-        cursor.execute("""
-            UPDATE users 
-            SET email_smtp_server = %s,
-                email_smtp_port = %s,
-                email_username = %s,
-                email_password = %s
-            WHERE id = %s
-        """, (smtp_server, smtp_port, username, password, current_user.id))
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        return jsonify({"status": "success", "message": "Settings saved"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
+
 
 
 
@@ -1013,49 +984,49 @@ def email_settings():
 @login_required
 def save_email_settings():
     """Save user's email configuration."""
-    smtp_server = request.form.get('smtp_server', 'smtp.gmail.com')
-    smtp_port = int(request.form.get('smtp_port', 587))
-    email_username = request.form.get('email_username', '').strip()
-    email_password = request.form.get('email_password', '').strip()
-    
-    if not email_username:
-        flash('Email address is required', 'error')
-        return redirect(url_for('email_settings'))
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    # Store password as-is (it's already an app-specific password, not the main account password)
-    # App passwords are designed to be used directly
-    if email_password:
-        cursor.execute("""
-            UPDATE users 
-            SET email_smtp_server = %s, email_smtp_port = %s, 
-                email_username = %s, email_password = %s
-            WHERE id = %s
-        """, (smtp_server, smtp_port, email_username, email_password, current_user.id))
-    else:
-        # Don't update password if not provided
-        cursor.execute("""
-            UPDATE users 
-            SET email_smtp_server = %s, email_smtp_port = %s, email_username = %s
-            WHERE id = %s
-        """, (smtp_server, smtp_port, email_username, current_user.id))
-    
-    conn.commit()
-    cursor.close()
-    conn.close()
-    
-    # Reload user to get updated config
-    # Store user_id before logging out, since current_user becomes AnonymousUserMixin after logout
-    user_id = current_user.id
-    from flask_login import logout_user, login_user
-    logout_user()
-    user = load_user(user_id)
-    login_user(user)
-    
-    flash('Email settings saved successfully!', 'success')
-    return redirect(url_for('email_settings'))
+    try:
+        smtp_server = request.form.get('smtp_server', 'smtp.gmail.com')
+        smtp_port = int(request.form.get('smtp_port', 587))
+        email_username = request.form.get('email_username', '').strip()
+        email_password = request.form.get('email_password', '').strip()
+        
+        if not email_username:
+            return jsonify({"status": "error", "message": "Email address is required"})
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Store password as-is (it's already an app-specific password, not the main account password)
+        # App passwords are designed to be used directly
+        if email_password:
+            cursor.execute("""
+                UPDATE users 
+                SET email_smtp_server = %s, email_smtp_port = %s, 
+                    email_username = %s, email_password = %s
+                WHERE id = %s
+            """, (smtp_server, smtp_port, email_username, email_password, current_user.id))
+        else:
+            # Don't update password if not provided
+            cursor.execute("""
+                UPDATE users 
+                SET email_smtp_server = %s, email_smtp_port = %s, email_username = %s
+                WHERE id = %s
+            """, (smtp_server, smtp_port, email_username, current_user.id))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        # Reload user to get updated config
+        user_id = current_user.id
+        from flask_login import logout_user, login_user
+        logout_user()
+        user = load_user(user_id)
+        login_user(user)
+        
+        return jsonify({"status": "success", "message": "Email settings saved successfully!"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/test-email')
 @login_required
