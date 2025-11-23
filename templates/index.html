@@ -98,7 +98,19 @@
 
         <!-- Email Config Form -->
         <form id="emailConfigForm"
-          style="display: none; background: var(--secondary); padding: 1rem; border-radius: 8px;">
+          style="display: none; background: var(--secondary); padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+
+          <div
+            style="margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted); background: #fff; padding: 0.75rem; border-radius: 6px; border-left: 3px solid var(--warning);">
+            <strong><i class="fa-solid fa-circle-info"></i> How to get App Password:</strong>
+            <ol style="margin-left: 1.2rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">
+              <li>Go to <a href="https://myaccount.google.com/apppasswords" target="_blank"
+                  style="color: var(--primary); text-decoration: underline;">Google App Passwords</a></li>
+              <li>Select "Mail" and "Other (Custom name)"</li>
+              <li>Name it "Job Crawler" and click Generate</li>
+              <li>Copy the 16-digit code below</li>
+            </ol>
+          </div>
           <div class="form-group">
             <input type="text" id="smtpServer" class="input-field" placeholder="SMTP Server (e.g. smtp.gmail.com)"
               style="font-size: 0.8rem; padding: 0.5rem;">
