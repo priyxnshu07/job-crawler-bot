@@ -882,7 +882,7 @@ def send_job_alert_email(user_email, user_skills, matched_jobs, user_email_confi
         # Create message
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
-        msg['From'] = f"Job Crawler <{smtp_username}>"
+        msg['From'] = f"Job Scout Pro <{smtp_username}>"
         msg['To'] = user_email
         
         # Send email using smtplib
