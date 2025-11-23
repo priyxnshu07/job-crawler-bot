@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: job-crawler-web
+    name: job-scout-pro
     env: docker
     # buildCommand and startCommand are ignored for Docker, but we'll remove them to be clean
     envVars:
@@ -10,13 +10,13 @@ services:
         generateValue: true
       - key: DATABASE_URL
         fromDatabase:
-          name: job-crawler-db
+          name: job-scout-db
           property: connectionString
     healthCheckPath: /login
     plan: free
 
 databases:
-  - name: job-crawler-db
-    databaseName: job_crawler_db
-    user: job_crawler_user
+  - name: job-scout-db
+    databaseName: job_scout_db
+    user: job_scout_user
     plan: free
