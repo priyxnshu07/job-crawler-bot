@@ -39,6 +39,14 @@ import docx
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a-very-secret-key-that-you-should-change')
 
+# --- FORCE IPv4 GLOBALLY ---
+# Fixes [Errno 101] Network is unreachable on Render/Docker
+import socket
+def getaddrinfo_ipv4(host, port, family=0, type=0, proto=0, flags=0):
+    return socket.getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+socket.getaddrinfo = getaddrinfo_ipv4
+# ---------------------------
+
 # Configure Flask-Mail
 app.config.update(EMAIL_CONFIG)
 mail = Mail(app)
