@@ -145,8 +145,21 @@
               style="font-size: 0.8rem; padding: 0.5rem;">
           </div>
           <div class="form-group">
-            <input type="password" id="emailPass" class="input-field" placeholder="App Password"
-              style="font-size: 0.8rem; padding: 0.5rem;">
+            <div class="input-group" style="display: flex; align-items: center;">
+              <input type="password" id="emailPass" class="input-field" placeholder="App Password"
+                style="font-size: 0.8rem; padding: 0.5rem; flex: 1;">
+              <button type="button" id="togglePassword"
+                style="background: none; border: none; padding: 0.5rem; cursor: pointer; color: #666;">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+            <div style="font-size: 0.7rem; color: #666; margin-top: 4px;">Use an App Password, not your main password.
+            </div>
+            <div class="alert alert-info py-2"
+              style="font-size: 0.8rem; margin-top: 10px; background-color: #e3f2fd; color: #0d47a1; padding: 8px; border-radius: 4px;">
+              <i class="fa-solid fa-circle-info"></i> <strong>Tip:</strong> Use Port <strong>465 (SSL)</strong> if
+              connection times out.
+            </div>
           </div>
           <button type="button" id="saveEmailConfig" class="btn btn-primary"
             style="width: 100%; font-size: 0.8rem;">Save Config</button>
