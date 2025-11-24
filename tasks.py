@@ -229,7 +229,10 @@ def scrape_timesjobs(query, location, max_jobs=10):
         response = requests.get(base_url, params=params, headers=headers, timeout=15, verify=False)
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        job_cards = soup.find_all('li', class_='clearfix job-bx wht-shd-bx')
+        # Try multiple selectors for robustness
+        job_cards = soup.find_all('li', class_='job-bx')
+        if not job_cards:
+            job_cards = soup.find_all('div', class_='job-bx')
         
         print(f"ℹ️ Found {len(job_cards)} job cards on TimesJobs")
         
