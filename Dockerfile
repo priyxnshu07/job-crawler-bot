@@ -41,7 +41,7 @@ EXPOSE 5001
 
 # Health check (simple curl check)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import socket; s=socket.socket(); s.connect(('localhost', 5001)); s.close()" || exit 1
+    CMD python -c "import socket, os; s=socket.socket(); s.connect(('localhost', int(os.environ.get('PORT', 5001)))); s.close()" || exit 1
 
 # Default command just runs the web app; worker/beat are defined in docker-compose
 CMD ["python", "app.py"]
