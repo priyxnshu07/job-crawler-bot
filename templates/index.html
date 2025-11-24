@@ -312,55 +312,6 @@
     });
     fileInput.addEventListener('change', () => document.getElementById('uploadForm').submit());
 
-    // Email Config
-    showEmailConfig.addEventListener('click', () => {
-      emailConfigForm.style.display = emailConfigForm.style.display === 'none' ? 'block' : 'none';
-    });
-
-    // Email Config Dropdowns
-    smtpServerSelect.addEventListener('change', () => {
-      if (smtpServerSelect.value === 'custom') {
-        smtpServerInput.style.display = 'block';
-        smtpServerInput.value = '';
-        smtpServerInput.focus();
-      } else {
-        smtpServerInput.style.display = 'none';
-        smtpServerInput.value = smtpServerSelect.value;
-      }
-    });
-
-    smtpPortSelect.addEventListener('change', () => {
-      if (smtpPortSelect.value === 'custom') {
-        smtpPortInput.style.display = 'block';
-        smtpPortInput.value = '';
-        smtpPortInput.focus();
-      } else {
-        smtpPortInput.style.display = 'none';
-        smtpPortInput.value = smtpPortSelect.value;
-      }
-    });
-
-    // Initialize inputs with dropdown values
-    smtpServerInput.value = smtpServerSelect.value;
-    smtpPortInput.value = smtpPortSelect.value;
-
-    saveEmailConfig.addEventListener('click', async () => {
-      const data = {
-        sendgrid_api_key: document.getElementById('sendgridApiKey').value,
-        from_email: document.getElementById('fromEmail').value
-      };
-
-      try {
-        const res = await fetch('/save-email-settings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams(data)
-        });
-        if (res.ok) showToast('Email settings saved successfully!', 'success');
-        else showToast('Failed to save settings', 'error');
-      } catch (e) { showToast('Error saving settings', 'error'); }
-    });
-
     // Toggle Alerts
     toggleEmailAlertsBtn.addEventListener('click', async () => {
       try {
