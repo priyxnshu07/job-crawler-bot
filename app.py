@@ -312,6 +312,29 @@ def get_db_connection():
     conn = psycopg2.connect(**DATABASE_CONFIG)
     return conn
 
+def run_sendgrid_migration():
+    """Auto-migration: Add SendGrid columns if they don't exist."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Add SendGrid columns (IF NOT EXISTS prevents errors if already added)
+        cursor.execute("""
+            ALTER TABLE users 
+            ADD COLUMN IF NOT EXISTS sendgrid_api_key TEXT,
+            ADD COLUMN IF NOT EXISTS from_email TEXT;
+        """)
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("✅ Database migration complete: SendGrid columns added")
+    except Exception as e:
+        print(f"⚠️ Migration error (probably already exists): {e}")
+
+# Run migration on app startup
+run_sendgrid_migration()
+
 # --- Helper Function for File Upload ---
 def allowed_file(filename):
     return '.' in filename and \
