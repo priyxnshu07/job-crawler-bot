@@ -277,14 +277,12 @@ def load_user(user_id):
     cursor.close()
     conn.close()
     if user_data:
-        # Build email config dict if user has email settings
+        # Build email config dict if user has SendGrid settings
         email_config = None
-        if user_data.get('email_username') and user_data.get('email_password'):
+        if user_data.get('sendgrid_api_key') and user_data.get('from_email'):
             email_config = {
-                'smtp_server': user_data.get('email_smtp_server', 'smtp.gmail.com'),
-                'smtp_port': user_data.get('email_smtp_port', 587),
-                'username': user_data.get('email_username'),
-                'password': user_data.get('email_password')  # Stored as-is (app password)
+                'sendgrid_api_key': user_data.get('sendgrid_api_key'),
+                'from_email': user_data.get('from_email')
             }
         
         return User(
@@ -830,34 +828,32 @@ def test_scrape():
 
 # --- Email Alert Functions ---
 def send_job_alert_email(user_email, user_skills, matched_jobs, user_email_config=None):
-    """Send email alert with matching jobs using user's email configuration."""
+    """Send email alert with matching jobs using SendGrid API (bypasses SMTP port blocking)."""
     if not matched_jobs:
         return False
     
-    # Determine which email config to use
-    if user_email_config:
-        # User has their own email config
-        smtp_server = user_email_config.get('smtp_server', 'smtp.gmail.com')
-        smtp_port = user_email_config.get('smtp_port', 587)
-        smtp_username = user_email_config.get('username')
-        smtp_password = user_email_config.get('password')
-    else:
-        # Try global config
-        smtp_server = EMAIL_CONFIG.get('MAIL_SERVER', 'smtp.gmail.com')
-        smtp_port = EMAIL_CONFIG.get('MAIL_PORT', 587)
-        smtp_username = EMAIL_CONFIG.get('MAIL_USERNAME')
-        smtp_password = EMAIL_CONFIG.get('MAIL_PASSWORD')
+    # Get SendGrid API key from user config or environment
+    sendgrid_api_key = None
+    from_email = None
     
-    # Check if email is configured
-    if not smtp_username or not smtp_password:
-        print(f"⚠ Email not configured for {user_email}. Skipping email send.")
+    if user_email_config:
+        # User has their own SendGrid config
+        sendgrid_api_key = user_email_config.get('sendgrid_api_key')
+        from_email = user_email_config.get('from_email')
+    
+    # Fallback to environment variables
+    if not sendgrid_api_key:
+        sendgrid_api_key = os.environ.get('SENDGRID_API_KEY')
+        from_email = os.environ.get('FROM_EMAIL', 'noreply@jobscout.com')
+    
+    # Check if SendGrid is configured
+    if not sendgrid_api_key:
+        print(f"⚠ SendGrid not configured for {user_email}. Skipping email send.")
         return False
     
     try:
-        # Use smtplib directly for per-user email sending
-        import smtplib
-        from email.mime.text import MIMEText
-        from email.mime.multipart import MIMEMultipart
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail, Email, To, Content
         
         subject = f"🎯 {len(matched_jobs)} New Job Matches!"
         
@@ -878,54 +874,35 @@ def send_job_alert_email(user_email, user_skills, matched_jobs, user_email_confi
             </div>
             ''' for job in matched_jobs[:10]])}
             <hr style="border: 1px solid #eee; margin: 20px 0;">
-            <p style="color: #666; font-size: 0.9rem;"><a href="http://127.0.0.1:5001" style="color: #007bff;">View All Jobs</a> | This is an automated alert from your Job Crawler Bot.</p>
+            <p style="color: #666; font-size: 0.9rem;">This is an automated alert from your Job Scout Pro.</p>
         </body></html>
         """
         
-        # Create message
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
-        msg['From'] = f"Job Scout Pro <{smtp_username}>"
-        msg['To'] = user_email
+        # Create message using SendGrid
+        message = Mail(
+            from_email=Email(from_email, "Job Scout Pro"),
+            to_emails=To(user_email),
+            subject=subject,
+            html_content=Content("text/html", html_body)
+        )
         
-        # Send email using smtplib
-        print(f"   Resolving {smtp_server} to IPv4...")
-        try:
-            # Explicitly resolve to IPv4 to avoid Network Unreachable errors
-            smtp_ip = socket.gethostbyname(smtp_server)
-            print(f"   Resolved to: {smtp_ip}")
-        except Exception as e:
-            print(f"   DNS resolution failed: {e}")
-            smtp_ip = smtp_server # Fallback to hostname
-            
-        print(f"   Connecting to {smtp_ip}:{smtp_port}...")
+        # Send via SendGrid API
+        sg = SendGridAPIClient(sendgrid_api_key)
+        response = sg.send(message)
         
-        server = None 
-        try:
-            if int(smtp_port) == 465:
-                # SSL Connection
-                server = smtplib.SMTP_SSL(smtp_ip, int(smtp_port), timeout=30)
-            else:
-                # TLS Connection
-                server = smtplib.SMTP(smtp_ip, int(smtp_port), timeout=30)
-                server.starttls()
-                
-            server.login(smtp_username, smtp_password)
-            server.send_message(msg)
-            
-            print(f"✅ Email sent successfully to {user_email}")
+        if response.status_code in [200, 201, 202]:
+            print(f"✅ Email sent successfully to {user_email} via SendGrid")
             return True
-        finally:
-            if server:
-                server.quit()
+        else:
+            print(f"⚠ SendGrid returned status {response.status_code} for {user_email}")
+            return False
         
     except Exception as e:
-        # Silent error - don't show scary messages to users
         error_msg = str(e)
-        if "Authentication" in error_msg or "530" in error_msg:
-            print(f"⚠ Email authentication failed for {user_email}. Please check email settings.")
+        if "API key" in error_msg or "authorization" in error_msg.lower():
+            print(f"⚠ SendGrid API key invalid for {user_email}. Please check settings.")
         else:
-            print(f"⚠ Email send failed for {user_email}: {error_msg[:50]}")
+            print(f"⚠ Email send failed for {user_email}: {error_msg[:80]}")
         return False
 
 @app.route('/toggle-email-alerts', methods=['POST'])
@@ -953,51 +930,41 @@ def email_settings():
     """Show email configuration page."""
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute("SELECT email_smtp_server, email_smtp_port, email_username FROM users WHERE id = %s", (current_user.id,))
+    cursor.execute("SELECT sendgrid_api_key, from_email FROM users WHERE id = %s", (current_user.id,))
     user_data = cursor.fetchone()
     cursor.close()
     conn.close()
     
-    has_config = user_data and user_data.get('email_username')
+    has_config = user_data and user_data.get('sendgrid_api_key')
     
     return render_template('email_settings.html', 
                          has_config=has_config,
-                         smtp_server=user_data.get('email_smtp_server', 'smtp.gmail.com') if user_data else 'smtp.gmail.com',
-                         smtp_port=user_data.get('email_smtp_port', 587) if user_data else 587,
-                         email_username=user_data.get('email_username', '') if user_data else '')
+                         sendgrid_api_key=user_data.get('sendgrid_api_key', '') if user_data else '',
+                         from_email=user_data.get('from_email', '') if user_data else '')
 
 @app.route('/save-email-settings', methods=['POST'])
 @login_required
 def save_email_settings():
-    """Save user's email configuration."""
+    """Save user's SendGrid email configuration."""
     try:
-        smtp_server = request.form.get('smtp_server', 'smtp.gmail.com')
-        smtp_port = int(request.form.get('smtp_port', 587))
-        email_username = request.form.get('email_username', '').strip()
-        email_password = request.form.get('email_password', '').strip()
+        sendgrid_api_key = request.form.get('sendgrid_api_key', '').strip()
+        from_email = request.form.get('from_email', '').strip()
         
-        if not email_username:
-            return jsonify({"status": "error", "message": "Email address is required"})
+        if not from_email:
+            return jsonify({"status": "error", "message": "Sender email address is required"})
+        
+        if not sendgrid_api_key:
+            return jsonify({"status": "error", "message": "SendGrid API key is required"})
         
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Store password as-is (it's already an app-specific password, not the main account password)
-        # App passwords are designed to be used directly
-        if email_password:
-            cursor.execute("""
-                UPDATE users 
-                SET email_smtp_server = %s, email_smtp_port = %s, 
-                    email_username = %s, email_password = %s
-                WHERE id = %s
-            """, (smtp_server, smtp_port, email_username, email_password, current_user.id))
-        else:
-            # Don't update password if not provided
-            cursor.execute("""
-                UPDATE users 
-                SET email_smtp_server = %s, email_smtp_port = %s, email_username = %s
-                WHERE id = %s
-            """, (smtp_server, smtp_port, email_username, current_user.id))
+        # Store SendGrid credentials (API key is safe to store as-is, it's not a password)
+        cursor.execute("""
+            UPDATE users 
+            SET sendgrid_api_key = %s, from_email = %s
+            WHERE id = %s
+        """, (sendgrid_api_key, from_email, current_user.id))
         
         conn.commit()
         cursor.close()
@@ -1017,23 +984,21 @@ def save_email_settings():
 @app.route('/test-email')
 @login_required
 def test_email():
-    """Send a test email using user's configuration."""
+    """Send a test email using user's SendGrid configuration."""
     # Get user's email config
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute("SELECT email_smtp_server, email_smtp_port, email_username, email_password FROM users WHERE id = %s", (current_user.id,))
+    cursor.execute("SELECT sendgrid_api_key, from_email FROM users WHERE id = %s", (current_user.id,))
     user_data = cursor.fetchone()
     cursor.close()
     conn.close()
     
-    if not user_data or not user_data.get('email_username'):
-        return jsonify({"status": "error", "message": "Please configure your email settings first!"})
+    if not user_data or not user_data.get('sendgrid_api_key'):
+        return jsonify({"status": "error", "message": "Please configure your SendGrid settings first!"})
     
     email_config = {
-        'smtp_server': user_data.get('email_smtp_server', 'smtp.gmail.com'),
-        'smtp_port': user_data.get('email_smtp_port', 587),
-        'username': user_data.get('email_username'),
-        'password': user_data.get('email_password')
+        'sendgrid_api_key': user_data.get('sendgrid_api_key'),
+        'from_email': user_data.get('from_email')
     }
     
     try:
@@ -1044,10 +1009,10 @@ def test_email():
         if send_job_alert_email(current_user.email, ['Test'], test_jobs, email_config):
             return jsonify({"status": "success", "message": "Test email sent! Check your inbox."})
         else:
-            return jsonify({"status": "error", "message": "Failed to send test email. Please check your email settings and app password."})
+            return jsonify({"status": "error", "message": "Failed to send test email. Please check your SendGrid API key."})
     except Exception as e:
         print(f"Email test error: {e}")
-        return jsonify({"status": "error", "message": "Email configuration error. Please check your settings."})
+        return jsonify({"status": "error", "message": f"Email configuration error: {str(e)[:100]}"})
 
 @app.route('/update-location', methods=['POST'])
 @login_required
