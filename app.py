@@ -850,28 +850,18 @@ def test_scrape():
 
 
 # --- Email Alert Functions ---
-def send_job_alert_email(user_email, user_skills, matched_jobs, user_email_config=None):
-    """Send email alert with matching jobs using SendGrid API (bypasses SMTP port blocking)."""
+def send_job_alert_email(user_email, user_skills, matched_jobs):
+    """Send email alert using admin's SendGrid configuration (environment variables)."""
     if not matched_jobs:
         return False
     
-    # Get SendGrid API key from user config or environment
-    sendgrid_api_key = None
-    from_email = None
+    # Get SendGrid credentials from environment (admin-only setup)
+    sendgrid_api_key = os.environ.get('SENDGRID_API_KEY')
+    from_email = os.environ.get('FROM_EMAIL', 'noreply@jobscout.com')
     
-    if user_email_config:
-        # User has their own SendGrid config
-        sendgrid_api_key = user_email_config.get('sendgrid_api_key')
-        from_email = user_email_config.get('from_email')
-    
-    # Fallback to environment variables
+    # Check if admin has configured SendGrid
     if not sendgrid_api_key:
-        sendgrid_api_key = os.environ.get('SENDGRID_API_KEY')
-        from_email = os.environ.get('FROM_EMAIL', 'noreply@jobscout.com')
-    
-    # Check if SendGrid is configured
-    if not sendgrid_api_key:
-        print(f"⚠ SendGrid not configured for {user_email}. Skipping email send.")
+        print(f"⚠ SendGrid not configured by admin. Set SENDGRID_API_KEY environment variable.")
         return False
     
     try:
@@ -923,7 +913,7 @@ def send_job_alert_email(user_email, user_skills, matched_jobs, user_email_confi
     except Exception as e:
         error_msg = str(e)
         if "API key" in error_msg or "authorization" in error_msg.lower():
-            print(f"⚠ SendGrid API key invalid for {user_email}. Please check settings.")
+            print(f"⚠ SendGrid API key invalid. Admin should check SENDGRID_API_KEY environment variable.")
         else:
             print(f"⚠ Email send failed for {user_email}: {error_msg[:80]}")
         return False
@@ -947,95 +937,22 @@ def toggle_email_alerts():
     flash(f'Email alerts {"enabled" if new_status else "disabled"}!', 'success')
     return jsonify({'success': True, 'enabled': new_status})
 
-@app.route('/email-settings')
-@login_required
-def email_settings():
-    """Show email configuration page."""
-    conn = get_db_connection()
-    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute("SELECT sendgrid_api_key, from_email FROM users WHERE id = %s", (current_user.id,))
-    user_data = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    
-    has_config = user_data and user_data.get('sendgrid_api_key')
-    
-    return render_template('email_settings.html', 
-                         has_config=has_config,
-                         sendgrid_api_key=user_data.get('sendgrid_api_key', '') if user_data else '',
-                         from_email=user_data.get('from_email', '') if user_data else '')
-
-@app.route('/save-email-settings', methods=['POST'])
-@login_required
-def save_email_settings():
-    """Save user's SendGrid email configuration."""
-    try:
-        sendgrid_api_key = request.form.get('sendgrid_api_key', '').strip()
-        from_email = request.form.get('from_email', '').strip()
-        
-        if not from_email:
-            return jsonify({"status": "error", "message": "Sender email address is required"})
-        
-        if not sendgrid_api_key:
-            return jsonify({"status": "error", "message": "SendGrid API key is required"})
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Store SendGrid credentials (API key is safe to store as-is, it's not a password)
-        cursor.execute("""
-            UPDATE users 
-            SET sendgrid_api_key = %s, from_email = %s
-            WHERE id = %s
-        """, (sendgrid_api_key, from_email, current_user.id))
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        # Reload user to get updated config
-        user_id = current_user.id
-        from flask_login import logout_user, login_user
-        logout_user()
-        user = load_user(user_id)
-        login_user(user)
-        
-        return jsonify({"status": "success", "message": "Email settings saved successfully!"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
-
 @app.route('/test-email')
 @login_required
 def test_email():
-    """Send a test email using user's SendGrid configuration."""
-    # Get user's email config
-    conn = get_db_connection()
-    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute("SELECT sendgrid_api_key, from_email FROM users WHERE id = %s", (current_user.id,))
-    user_data = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    
-    if not user_data or not user_data.get('sendgrid_api_key'):
-        return jsonify({"status": "error", "message": "Please configure your SendGrid settings first!"})
-    
-    email_config = {
-        'sendgrid_api_key': user_data.get('sendgrid_api_key'),
-        'from_email': user_data.get('from_email')
-    }
-    
+    """Send a test email using admin's SendGrid configuration."""
     try:
         # Create a simple test email
         test_jobs = [{'title': 'Test Job', 'company': 'Test Company', 'location': 'Test Location', 
                      'apply_link': 'http://127.0.0.1:5001', 'match_score': 100, 'matched_skills': ['Test']}]
         
-        if send_job_alert_email(current_user.email, ['Test'], test_jobs, email_config):
+        if send_job_alert_email(current_user.email, ['Test'], test_jobs):
             return jsonify({"status": "success", "message": "Test email sent! Check your inbox."})
         else:
-            return jsonify({"status": "error", "message": "Failed to send test email. Please check your SendGrid API key."})
+            return jsonify({"status": "error", "message": "Failed to send test email. Admin should check SENDGRID_API_KEY environment variable."})
     except Exception as e:
         print(f"Email test error: {e}")
-        return jsonify({"status": "error", "message": f"Email configuration error: {str(e)[:100]}"})
+        return jsonify({"status": "error", "message": f"Email error: {str(e)[:100]}"})
 
 @app.route('/update-location', methods=['POST'])
 @login_required
