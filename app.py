@@ -904,10 +904,10 @@ def send_job_alert_email(user_email, user_skills, matched_jobs, user_email_confi
         try:
             if int(smtp_port) == 465:
                 # SSL Connection
-                server = smtplib.SMTP_SSL(smtp_ip, int(smtp_port))
+                server = smtplib.SMTP_SSL(smtp_ip, int(smtp_port), timeout=30)
             else:
                 # TLS Connection
-                server = smtplib.SMTP(smtp_ip, int(smtp_port))
+                server = smtplib.SMTP(smtp_ip, int(smtp_port), timeout=30)
                 server.starttls()
                 
             server.login(smtp_username, smtp_password)
