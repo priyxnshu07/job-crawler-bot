@@ -1081,6 +1081,17 @@ def update_location():
     
     return redirect(url_for('index'))
 
+@app.after_request
+def add_header(response):
+    """
+    Add headers to both force latest IE rendering engine or Chrome Frame,
+    and also to cache the rendered page for 10 minutes.
+    """
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 if __name__ == '__main__':
     # Allow access from all network interfaces for public deployment
     host = os.environ.get('FLASK_HOST', '0.0.0.0')
