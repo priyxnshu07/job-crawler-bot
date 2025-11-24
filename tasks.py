@@ -35,7 +35,7 @@ def scrape_indeed(query, location, max_jobs=10):
     print(f"🔎 Scraping Indeed for '{query}' in '{location}'...")
     
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
         'Accept-Encoding': 'gzip, deflate, br',
@@ -45,11 +45,7 @@ def scrape_indeed(query, location, max_jobs=10):
         'Sec-Fetch-Dest': 'document',
         'Sec-Fetch-Mode': 'navigate',
         'Sec-Fetch-Site': 'cross-site',
-        'Sec-Fetch-User': '?1',
         'Cache-Control': 'max-age=0',
-        'sec-ch-ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"macOS"',
     }
     
     params = {
@@ -74,12 +70,18 @@ def scrape_indeed(query, location, max_jobs=10):
         
         # 1. Visit Homepage first to get cookies
         print(f"   Visiting {base_url} to establish session...")
-        session.get(base_url, timeout=10)
-        time.sleep(random.uniform(1, 2))
+        try:
+            session.get(base_url, timeout=10)
+            time.sleep(random.uniform(2, 4)) # Increased delay
+        except Exception as e:
+            print(f"   ⚠️ Could not visit homepage: {e}")
         
         # 2. Perform Search
         response = session.get(search_url, params=params, timeout=20)
         
+        if response.status_code == 403:
+             print(f"⚠️ Indeed blocked the request (403). Skipping Indeed for now.")
+             return []
         if response.status_code != 200:
             print(f"⚠️ Indeed returned status {response.status_code}")
             return []
